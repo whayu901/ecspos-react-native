@@ -110,6 +110,7 @@ dependencies {
     implementation("com.facebook.react:flipper-integration")
     implementation project(':react-native-bluetooth-escpos-printer')
 
+
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
     } else {
