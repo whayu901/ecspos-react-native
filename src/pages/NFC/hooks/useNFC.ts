@@ -2,6 +2,18 @@ import {useEffect, useState} from 'react';
 import {Alert} from 'react-native';
 import NfcManager, {NfcEvents, Ndef, NfcTech} from 'react-native-nfc-manager';
 
+//  * Example data for nfc value
+const data = [
+  {
+    name: 'wahyu',
+    age: 12,
+  },
+  {
+    name: 'windi',
+    age: 14,
+  },
+];
+
 export const useNFC = () => {
   const [hasNfc, setHasNfc] = useState<any>(null);
   const [result, setResult] = useState('');
@@ -45,7 +57,8 @@ export const useNFC = () => {
     try {
       await NfcManager.requestTechnology(NfcTech.Ndef);
 
-      const bytes = Ndef.encodeMessage([Ndef.uriRecord('https://google.com/')]);
+      // const bytes = Ndef.encodeMessage([Ndef.uriRecord('https://google.com/')]); // * examplae encode with url
+      const bytes = Ndef.encodeMessage([Ndef.textRecord(JSON.stringify(data))]); // * example encode with data json
 
       if (bytes) {
         await NfcManager.ndefHandler.writeNdefMessage(bytes);
