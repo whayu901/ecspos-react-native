@@ -21,7 +21,6 @@ export const useNFC = () => {
   useEffect(() => {
     const checkIsSupported = async () => {
       const deviceIsSupported = await NfcManager.isSupported();
-      console.log({deviceIsSupported});
 
       setHasNfc(deviceIsSupported);
       if (deviceIsSupported) {
@@ -34,11 +33,6 @@ export const useNFC = () => {
 
   useEffect(() => {
     NfcManager.setEventListener(NfcEvents.DiscoverTag, (tag: any) => {
-      console.log(
-        'tag found',
-        Ndef.uri.decodePayload(tag.ndefMessage[0].payload),
-      );
-
       setResult(Ndef.uri.decodePayload(tag.ndefMessage[0].payload));
     });
 
