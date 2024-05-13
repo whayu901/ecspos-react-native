@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import {Alert} from 'react-native';
+import {Alert, AppState} from 'react-native';
 import NfcManager, {NfcEvents, Ndef, NfcTech} from 'react-native-nfc-manager';
 
 // Example data for NFC value
@@ -23,7 +23,7 @@ export const useNFC = () => {
 
   useEffect(() => {
     const checkIsSupported = async () => {
-      const deviceIsSupported = await NfcManager.isSupported();
+      const deviceIsSupported = await NfcManager.isEnabled();
 
       setHasNfc(deviceIsSupported);
       if (deviceIsSupported) {
@@ -31,9 +31,19 @@ export const useNFC = () => {
       }
     };
 
+    const subscription: any = AppState.addEventListener(
+      'change',
+      nextAppState => {
+        if (nextAppState === 'active') {
+          checkIsSupported();
+        }
+      },
+    );
+
     checkIsSupported();
 
     return () => {
+      subscription.remove();
       NfcManager.cancelTechnologyRequest();
       if (nfcEventListener) {
         nfcEventListener.remove();
