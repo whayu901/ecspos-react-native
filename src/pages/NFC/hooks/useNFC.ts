@@ -2,7 +2,7 @@ import {useEffect, useState} from 'react';
 import {Alert} from 'react-native';
 import NfcManager, {NfcEvents, Ndef, NfcTech} from 'react-native-nfc-manager';
 
-//  * Example data for nfc value
+// Example data for NFC value
 const data = [
   {
     name: 'wahyu',
@@ -17,6 +17,9 @@ const data = [
 export const useNFC = () => {
   const [hasNfc, setHasNfc] = useState<any>(null);
   const [result, setResult] = useState('');
+  const [loadingRead, setLoadingRead] = useState(false);
+  const [loadingWrite, setLoadingWrite] = useState(false);
+  const [nfcEventListener, setNfcEventListener] = useState<any>(null);
 
   useEffect(() => {
     const checkIsSupported = async () => {
@@ -29,50 +32,67 @@ export const useNFC = () => {
     };
 
     checkIsSupported();
-  }, []);
-
-  useEffect(() => {
-    NfcManager.setEventListener(NfcEvents.DiscoverTag, (tag: any) => {
-      setResult(Ndef.uri.decodePayload(tag.ndefMessage[0].payload));
-    });
 
     return () => {
-      NfcManager.setEventListener(NfcEvents.DiscoverTag, null);
+      NfcManager.cancelTechnologyRequest();
+      if (nfcEventListener) {
+        nfcEventListener.remove();
+      }
     };
-  }, []);
+  }, [nfcEventListener]);
+
+  const setupNfcEventListener = () => {
+    if (nfcEventListener) {
+      nfcEventListener.remove();
+    }
+    const eventListener = NfcManager.setEventListener(
+      NfcEvents.DiscoverTag,
+      (tag: any) => {
+        const payload = tag.ndefMessage[0].payload;
+        const payloadStr = Ndef.text.decodePayload(payload);
+        const jsonData = JSON.parse(payloadStr);
+
+        setLoadingRead(false);
+        setResult(JSON.stringify(jsonData));
+      },
+    );
+    setNfcEventListener(eventListener);
+  };
 
   const readTag = async () => {
-    await NfcManager.registerTagEvent();
+    setLoadingRead(true);
+    try {
+      await NfcManager.registerTagEvent();
+      setupNfcEventListener();
+    } catch (error) {
+      console.warn(error);
+    }
   };
 
   const writeNFC = async () => {
-    let resultNfc = false;
-
+    setLoadingWrite(true);
     try {
       await NfcManager.requestTechnology(NfcTech.Ndef);
 
-      // const bytes = Ndef.encodeMessage([Ndef.uriRecord('https://google.com/')]); // * examplae encode with url
-      const bytes = Ndef.encodeMessage([Ndef.textRecord(JSON.stringify(data))]); // * example encode with data json
+      const bytes = Ndef.encodeMessage([Ndef.textRecord(JSON.stringify(data))]);
 
       if (bytes) {
         await NfcManager.ndefHandler.writeNdefMessage(bytes);
-        resultNfc = true;
-
         Alert.alert('Success Write NFC');
       }
-    } catch (ex) {
-      console.warn(ex);
+    } catch (error) {
+      console.warn(error);
     } finally {
+      setLoadingWrite(false);
       NfcManager.cancelTechnologyRequest();
     }
-
-    return resultNfc;
   };
 
   return {
     hasNfc,
     result,
-
+    loadingRead,
+    loadingWrite,
     readTag,
     writeNFC,
   };
