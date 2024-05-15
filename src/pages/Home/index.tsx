@@ -16,7 +16,6 @@ import {
   TouchableOpacity,
   useColorScheme,
   View,
-  Linking,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 function App(): React.JSX.Element {
@@ -29,7 +28,7 @@ function App(): React.JSX.Element {
       <ScrollView contentInsetAdjustmentBehavior="automatic">
         <View style={{marginHorizontal: 15}}>
           <TouchableOpacity
-            onPress={() => Linking.openSettings()}
+            onPress={() => navigation.navigate('QRCode')}
             style={{
               flexDirection: 'row',
               justifyContent: 'space-between',
