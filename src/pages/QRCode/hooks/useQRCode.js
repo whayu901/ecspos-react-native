@@ -1,5 +1,5 @@
 import {useCallback, useEffect, useState} from 'react';
-import {DeviceEventEmitter, PermissionsAndroid} from 'react-native';
+import {DeviceEventEmitter, PermissionsAndroid, Alert} from 'react-native';
 import {
   BluetoothEscposPrinter,
   BluetoothManager,
@@ -7,15 +7,15 @@ import {
 
 export const useQRCode = () => {
   const [pairedDevices, setPairedDevices] = useState([]);
-
   const [foundDs, setFoundDs] = useState([]);
+
   const [bleOpend, setBleOpend] = useState(false);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState('');
   const [boundAddress, setBoundAddress] = useState('');
+  const [loadingConeect, setLoadingConnect] = useState(false);
 
   useEffect(() => {
-    BluetoothManager.connect('86:67:7A:B3:7F:B5');
     DeviceEventEmitter.addListener(
       BluetoothManager.EVENT_DEVICE_ALREADY_PAIRED,
       rsp => {
@@ -27,6 +27,30 @@ export const useQRCode = () => {
       scan();
     }
   }, [deviceAlreadPaired, pairedDevices.length, scan]);
+
+  const connectDevice = useCallback((name, boundAddress) => {
+    setLoadingConnect(true);
+    BluetoothManager.connect(boundAddress).then(
+      () => {
+        setLoadingConnect(false);
+        Alert.alert('Success', 'Connect success');
+        setName(name);
+        setBoundAddress(boundAddress);
+      },
+      e => {
+        setLoadingConnect(false);
+        console.log(e);
+      },
+    );
+  }, []);
+
+  const disconnectDevice = useCallback(adressBluetooth => {
+    BluetoothManager.unpaire(adressBluetooth).then(() => {
+      setName('');
+      setBoundAddress('');
+      Alert.alert('Success', 'Disconnect success');
+    });
+  }, []);
 
   const deviceAlreadPaired = useCallback(
     rsp => {
@@ -90,7 +114,6 @@ export const useQRCode = () => {
     setLoading(true);
     BluetoothManager.scanDevices().then(
       s => {
-        // const pairedDevices = s.paired;
         let found = s.found;
         try {
           found = JSON.parse(found); //@FIX_it: the parse action too weired..
@@ -113,66 +136,62 @@ export const useQRCode = () => {
 
   const printPaper = async () => {
     try {
-      // Adding some initial blank lines
-      await BluetoothEscposPrinter.printText('\r\n\r\n', {});
-
       // Align content left for the landscape effect
+
+      await BluetoothEscposPrinter.setBlob(0);
       await BluetoothEscposPrinter.printerAlign(
-        BluetoothEscposPrinter.ALIGN.LEFT,
+        BluetoothEscposPrinter.ALIGN.CENTER,
       );
 
       // Define the column widths
-      const columnWidths = [24, 24];
+      const columnWidths = [15, 15];
+
+      await BluetoothEscposPrinter.printQRCode(
+        'SAMPLE QR/NFC',
+        150,
+        BluetoothEscposPrinter.ERROR_CORRECTION.L,
+      );
 
       // Print header and QR code in a two-column format
+
       await BluetoothEscposPrinter.printColumn(
         columnWidths,
         [BluetoothEscposPrinter.ALIGN.LEFT, BluetoothEscposPrinter.ALIGN.RIGHT],
-        [
-          'Paterno\r\nSAMPLE\r\nQR/NFC\r\n',
-          '\x1b' +
-            '\x21' +
-            '\x10' +
-            (await BluetoothEscposPrinter.printQRCode(
-              'SAMPLE QR/NFC',
-              150,
-              BluetoothEscposPrinter.ERROR_CORRECTION.L,
-            )) +
-            '\x1b' +
-            '\x21' +
-            '\x00',
-        ],
-        {},
+        ['Paterno', ''],
+        {
+          fonttype: 1,
+        },
       );
+      await BluetoothEscposPrinter.printText('\r\n\r\n', {});
 
       // Print sample details in a two-column format
       await BluetoothEscposPrinter.printColumn(
         columnWidths,
-        [BluetoothEscposPrinter.ALIGN.LEFT, BluetoothEscposPrinter.ALIGN.LEFT],
+        [BluetoothEscposPrinter.ALIGN.LEFT, BluetoothEscposPrinter.ALIGN.RIGHT],
         ['Sample Name:', 'Tandan ke-3'],
         {},
       );
       await BluetoothEscposPrinter.printColumn(
         columnWidths,
-        [BluetoothEscposPrinter.ALIGN.LEFT, BluetoothEscposPrinter.ALIGN.LEFT],
+        [BluetoothEscposPrinter.ALIGN.LEFT, BluetoothEscposPrinter.ALIGN.RIGHT],
         ['Trial:', 'Nomor Trial'],
         {},
       );
       await BluetoothEscposPrinter.printColumn(
         columnWidths,
-        [BluetoothEscposPrinter.ALIGN.LEFT, BluetoothEscposPrinter.ALIGN.LEFT],
+        [BluetoothEscposPrinter.ALIGN.LEFT, BluetoothEscposPrinter.ALIGN.RIGHT],
         ['Blok:', 'Nomor Blok'],
         {},
       );
       await BluetoothEscposPrinter.printColumn(
         columnWidths,
-        [BluetoothEscposPrinter.ALIGN.LEFT, BluetoothEscposPrinter.ALIGN.LEFT],
+        [BluetoothEscposPrinter.ALIGN.LEFT, BluetoothEscposPrinter.ALIGN.RIGHT],
         ['Plot:', 'Nomor Plot'],
         {},
       );
       await BluetoothEscposPrinter.printColumn(
         columnWidths,
-        [BluetoothEscposPrinter.ALIGN.LEFT, BluetoothEscposPrinter.ALIGN.LEFT],
+        [BluetoothEscposPrinter.ALIGN.LEFT, BluetoothEscposPrinter.ALIGN.RIGHT],
         ['Palm:', 'Nomor Palm'],
         {},
       );
@@ -186,5 +205,10 @@ export const useQRCode = () => {
 
   return {
     printPaper,
+    pairedDevices,
+    connectDevice,
+    disconnectDevice,
+
+    boundAddress,
   };
 };
