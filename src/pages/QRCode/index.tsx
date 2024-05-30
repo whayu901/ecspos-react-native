@@ -1,14 +1,17 @@
 import React from 'react';
 import {View, TouchableOpacity, Text, StyleSheet} from 'react-native';
+
 import {useQRCode} from './hooks/useQRCode';
+import {ModalListDevices} from './components';
 
 const QRCode = () => {
   const {
     printPaper,
+    showModalList,
+    setShowModalList,
     pairedDevices,
-    connectDevice,
     boundAddress,
-    disconnectDevice,
+    onPressPairedDeviceBluetooth,
   } = useQRCode();
 
   return (
@@ -17,30 +20,13 @@ const QRCode = () => {
         <Text style={styles.labelBtn}>Print Test</Text>
       </TouchableOpacity>
 
-      <View>
-        {pairedDevices.map((device: any, index) => (
-          <View key={index} style={styles.containerListPairedDevices}>
-            <Text style={styles.nameText}>{device.name}</Text>
-            <TouchableOpacity
-              style={[
-                styles.btnConnect,
-                {
-                  backgroundColor:
-                    device.address === boundAddress ? 'red' : 'green',
-                },
-              ]}
-              onPress={() =>
-                device.address === boundAddress
-                  ? disconnectDevice(device.address)
-                  : connectDevice(device.name, device.address)
-              }>
-              <Text style={[styles.btnConnectText]}>
-                {device.address === boundAddress ? 'Disconnect' : 'Connect'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        ))}
-      </View>
+      <ModalListDevices
+        visible={showModalList}
+        onClose={() => setShowModalList(false)}
+        data={pairedDevices}
+        boundAddress={boundAddress}
+        onPress={(name, address) => onPressPairedDeviceBluetooth(name, address)}
+      />
     </View>
   );
 };

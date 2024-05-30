@@ -1,5 +1,6 @@
 import {useCallback, useEffect, useState} from 'react';
 import {DeviceEventEmitter, PermissionsAndroid, Alert} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   BluetoothEscposPrinter,
   BluetoothManager,
@@ -14,6 +15,7 @@ export const useQRCode = () => {
   const [name, setName] = useState('');
   const [boundAddress, setBoundAddress] = useState('');
   const [loadingConeect, setLoadingConnect] = useState(false);
+  const [showModalList, setShowModalList] = useState(false);
 
   useEffect(() => {
     DeviceEventEmitter.addListener(
@@ -23,19 +25,46 @@ export const useQRCode = () => {
       },
     );
 
+    const gettingData = async () => {
+      try {
+        const value = await AsyncStorage.getItem('printerAddress');
+        console.log({value});
+        if (value !== null) {
+          setBoundAddress(value);
+          await BluetoothManager.connect(value);
+        }
+      } catch (e) {
+        console.log(e);
+      }
+    };
+
+    gettingData();
+
     if (pairedDevices.length < 1) {
       scan();
     }
   }, [deviceAlreadPaired, pairedDevices.length, scan]);
 
-  const connectDevice = useCallback((name, boundAddress) => {
+  const onPressPairedDeviceBluetooth = useCallback(
+    (nameDevice, adress) => {
+      if (boundAddress === '') {
+        connectDevice(nameDevice, adress);
+      } else {
+        disconnectDevice(adress);
+      }
+    },
+    [boundAddress, connectDevice, disconnectDevice],
+  );
+
+  const connectDevice = useCallback(async (name, boundAddress) => {
     setLoadingConnect(true);
     BluetoothManager.connect(boundAddress).then(
-      () => {
+      async () => {
         setLoadingConnect(false);
         Alert.alert('Success', 'Connect success');
         setName(name);
         setBoundAddress(boundAddress);
+        await AsyncStorage.setItem('printerAddress', boundAddress);
       },
       e => {
         setLoadingConnect(false);
@@ -44,7 +73,7 @@ export const useQRCode = () => {
     );
   }, []);
 
-  const disconnectDevice = useCallback(adressBluetooth => {
+  const disconnectDevice = useCallback(async adressBluetooth => {
     BluetoothManager.unpaire(adressBluetooth).then(() => {
       setName('');
       setBoundAddress('');
@@ -97,7 +126,6 @@ export const useQRCode = () => {
             permissions,
           );
           if (bluetoothScanGranted === PermissionsAndroid.RESULTS.GRANTED) {
-            console.log('hello');
             scanDevices();
           }
         } else {
@@ -135,71 +163,95 @@ export const useQRCode = () => {
   }, [foundDs]);
 
   const printPaper = async () => {
-    try {
-      // Align content left for the landscape effect
+    const isBluetoothEnabled = await BluetoothManager.isBluetoothEnabled();
 
-      await BluetoothEscposPrinter.setBlob(0);
-      await BluetoothEscposPrinter.printerAlign(
-        BluetoothEscposPrinter.ALIGN.CENTER,
-      );
+    if (!isBluetoothEnabled) {
+      Alert.alert('Bluetooth is not enabled');
+    } else if (boundAddress === '') {
+      setShowModalList(true);
+    } else {
+      try {
+        // Align content left for the landscape effect
 
-      // Define the column widths
-      const columnWidths = [15, 15];
+        await BluetoothEscposPrinter.setBlob(0);
+        await BluetoothEscposPrinter.printerAlign(
+          BluetoothEscposPrinter.ALIGN.CENTER,
+        );
 
-      await BluetoothEscposPrinter.printQRCode(
-        'SAMPLE QR/NFC',
-        150,
-        BluetoothEscposPrinter.ERROR_CORRECTION.L,
-      );
+        // Define the column widths
+        const columnWidths = [15, 15];
 
-      // Print header and QR code in a two-column format
+        await BluetoothEscposPrinter.printQRCode(
+          'SAMPLE QR/NFC',
+          250,
+          BluetoothEscposPrinter.ERROR_CORRECTION.L,
+        );
 
-      await BluetoothEscposPrinter.printColumn(
-        columnWidths,
-        [BluetoothEscposPrinter.ALIGN.LEFT, BluetoothEscposPrinter.ALIGN.RIGHT],
-        ['Paterno', ''],
-        {
-          fonttype: 1,
-        },
-      );
-      await BluetoothEscposPrinter.printText('\r\n\r\n', {});
+        // Print header and QR code in a two-column format
 
-      // Print sample details in a two-column format
-      await BluetoothEscposPrinter.printColumn(
-        columnWidths,
-        [BluetoothEscposPrinter.ALIGN.LEFT, BluetoothEscposPrinter.ALIGN.RIGHT],
-        ['Sample Name:', 'Tandan ke-3'],
-        {},
-      );
-      await BluetoothEscposPrinter.printColumn(
-        columnWidths,
-        [BluetoothEscposPrinter.ALIGN.LEFT, BluetoothEscposPrinter.ALIGN.RIGHT],
-        ['Trial:', 'Nomor Trial'],
-        {},
-      );
-      await BluetoothEscposPrinter.printColumn(
-        columnWidths,
-        [BluetoothEscposPrinter.ALIGN.LEFT, BluetoothEscposPrinter.ALIGN.RIGHT],
-        ['Blok:', 'Nomor Blok'],
-        {},
-      );
-      await BluetoothEscposPrinter.printColumn(
-        columnWidths,
-        [BluetoothEscposPrinter.ALIGN.LEFT, BluetoothEscposPrinter.ALIGN.RIGHT],
-        ['Plot:', 'Nomor Plot'],
-        {},
-      );
-      await BluetoothEscposPrinter.printColumn(
-        columnWidths,
-        [BluetoothEscposPrinter.ALIGN.LEFT, BluetoothEscposPrinter.ALIGN.RIGHT],
-        ['Palm:', 'Nomor Palm'],
-        {},
-      );
+        await BluetoothEscposPrinter.printColumn(
+          columnWidths,
+          [
+            BluetoothEscposPrinter.ALIGN.LEFT,
+            BluetoothEscposPrinter.ALIGN.RIGHT,
+          ],
+          ['Paterno', ''],
+          {},
+        );
+        await BluetoothEscposPrinter.printText('\r\n', {});
 
-      // Adding some final blank lines
-      await BluetoothEscposPrinter.printText('\r\n\r\n\r\n', {});
-    } catch (e) {
-      console.error('Printing error:', e.message || 'Unknown error');
+        // Print sample details in a two-column format
+        await BluetoothEscposPrinter.printColumn(
+          columnWidths,
+          [
+            BluetoothEscposPrinter.ALIGN.LEFT,
+            BluetoothEscposPrinter.ALIGN.RIGHT,
+          ],
+          ['Sample Name:', 'Tandan ke-3'],
+          {},
+        );
+        await BluetoothEscposPrinter.printColumn(
+          columnWidths,
+          [
+            BluetoothEscposPrinter.ALIGN.LEFT,
+            BluetoothEscposPrinter.ALIGN.RIGHT,
+          ],
+          ['Trial:', 'Nomor Trial'],
+          {},
+        );
+        await BluetoothEscposPrinter.printColumn(
+          columnWidths,
+          [
+            BluetoothEscposPrinter.ALIGN.LEFT,
+            BluetoothEscposPrinter.ALIGN.RIGHT,
+          ],
+          ['Blok:', 'Nomor Blok'],
+          {},
+        );
+        await BluetoothEscposPrinter.printColumn(
+          columnWidths,
+          [
+            BluetoothEscposPrinter.ALIGN.LEFT,
+            BluetoothEscposPrinter.ALIGN.RIGHT,
+          ],
+          ['Plot:', 'Nomor Plot'],
+          {},
+        );
+        await BluetoothEscposPrinter.printColumn(
+          columnWidths,
+          [
+            BluetoothEscposPrinter.ALIGN.LEFT,
+            BluetoothEscposPrinter.ALIGN.RIGHT,
+          ],
+          ['Palm:', 'Nomor Palm'],
+          {},
+        );
+
+        // Adding some final blank lines
+        await BluetoothEscposPrinter.printText('\r\n\r\n\r\n', {});
+      } catch (e) {
+        console.error('Printing error:', e.message || 'Unknown error');
+      }
     }
   };
 
@@ -208,7 +260,10 @@ export const useQRCode = () => {
     pairedDevices,
     connectDevice,
     disconnectDevice,
+    onPressPairedDeviceBluetooth,
 
     boundAddress,
+    showModalList,
+    setShowModalList,
   };
 };
