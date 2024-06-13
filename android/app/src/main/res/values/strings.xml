@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">MyApp</string>
+    <string name="function_name_discover_printer">Discover Printer</string>
 </resources>
