@@ -27,7 +27,7 @@
         </intent-filter>
       </activity>
         <activity
-            android:name="com.myapp.activity.SearchActivity"
+            android:name="com.myapp.activity.DetailListActivity"
             android:screenOrientation="portrait"
             android:configChanges="keyboardHidden|orientation">
         </activity>
