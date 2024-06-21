@@ -110,7 +110,7 @@ dependencies {
     implementation("com.facebook.react:react-android")
     implementation("com.facebook.react:flipper-integration")
     implementation project(':react-native-bluetooth-escpos-printer')
-    implementation files('libs/LWPrint.jar')
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
 
 
     if (hermesEnabled.toBoolean()) {

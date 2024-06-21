@@ -6,19 +6,25 @@ import {ModalListDevices} from './components';
 
 const QRCode = () => {
   const {
-    printPaper,
+    // printPaper,
     showModalList,
     setShowModalList,
     pairedDevices,
     boundAddress,
     onPressPairedDeviceBluetooth,
+    DetailListManager,
   } = useQRCode();
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.btnContainer} onPress={printPaper}>
+      <TouchableOpacity
+        style={styles.btnContainer}
+        onPress={() => DetailListManager.showDetailList()}>
         <Text style={styles.labelBtn}>Print Test</Text>
       </TouchableOpacity>
+      {/* <TouchableOpacity style={styles.btnContainer} onPress={printPaper}>
+        <Text style={styles.labelBtn}>Print Test</Text>
+      </TouchableOpacity> */}
 
       <ModalListDevices
         visible={showModalList}

@@ -1,5 +1,10 @@
 import {useCallback, useEffect, useState} from 'react';
-import {DeviceEventEmitter, PermissionsAndroid, Alert} from 'react-native';
+import {
+  DeviceEventEmitter,
+  PermissionsAndroid,
+  Alert,
+  NativeModules,
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   BluetoothEscposPrinter,
@@ -9,6 +14,8 @@ import {
 export const useQRCode = () => {
   const [pairedDevices, setPairedDevices] = useState([]);
   const [foundDs, setFoundDs] = useState([]);
+
+  const {DetailListManager} = NativeModules;
 
   const [bleOpend, setBleOpend] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -261,6 +268,7 @@ export const useQRCode = () => {
     connectDevice,
     disconnectDevice,
     onPressPairedDeviceBluetooth,
+    DetailListManager,
 
     boundAddress,
     showModalList,

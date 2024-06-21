@@ -94,7 +94,7 @@ public class PrintManager extends ReactContextBaseJavaModule {
     Map<String, Object> _printSettings = null;
     Map<String, Integer> _lwStatus = null;
 
-    android.os.Handler handler = new android.os.Handler();
+//    android.os.Handler handler = new android.os.Handler();
 
     private void createProgressDialogForPrinting() {
         if (progressDialog == null) {
@@ -141,11 +141,11 @@ public class PrintManager extends ReactContextBaseJavaModule {
             return;
         }
 
-        handler.postDelayed(() -> {
-            if(progressDialog == null) {
-                progressDialog.show();
-            }
-        }, 1);
+//        handler.postDelayed(() -> {
+//            if(progressDialog == null) {
+//                progressDialog.show();
+//            }
+//        }, 1);
 
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.execute(() -> {
@@ -182,23 +182,23 @@ public class PrintManager extends ReactContextBaseJavaModule {
             timer = null;
         }
         timer = new Timer();
-        TimerTask task = (new TimerTask() {
-            @Override
-            public void run() {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        float progress = lwPrint.getProgressOfPrint();
-                        if (progressDialog != null) {
-                            progressDialog.setProgress((int) (progress * 100));
-                        }
-                        int printingPage = lwPrint.getPageNumberOfPrinting();
-//                        textPrintingPage.setText(String.valueOf(printingPage));
-                    }
-                });
-            }
-        });
-        timer.schedule(task, 1000, 1000);
+//        TimerTask task = (new TimerTask() {
+//            @Override
+//            public void run() {
+//                handler.post(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        float progress = lwPrint.getProgressOfPrint();
+//                        if (progressDialog != null) {
+//                            progressDialog.setProgress((int) (progress * 100));
+//                        }
+//                        int printingPage = lwPrint.getPageNumberOfPrinting();
+////                        textPrintingPage.setText(String.valueOf(printingPage));
+//                    }
+//                });
+//            }
+//        });
+//        timer.schedule(task, 1000, 1000);
 
     }
 
