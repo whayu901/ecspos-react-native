@@ -13,6 +13,7 @@ const QRCode = () => {
     boundAddress,
     onPressPairedDeviceBluetooth,
     DetailListManager,
+    PrintManager,
   } = useQRCode();
 
   return (
@@ -22,9 +23,11 @@ const QRCode = () => {
         onPress={() => DetailListManager.showDetailList()}>
         <Text style={styles.labelBtn}>Print Test</Text>
       </TouchableOpacity>
-      {/* <TouchableOpacity style={styles.btnContainer} onPress={printPaper}>
-        <Text style={styles.labelBtn}>Print Test</Text>
-      </TouchableOpacity> */}
+      <TouchableOpacity
+        style={[styles.btnContainer, {marginTop: 10, backgroundColor: 'red'}]}
+        onPress={() => PrintManager.performPrint()}>
+        <Text style={styles.labelBtn}>Print perform</Text>
+      </TouchableOpacity>
 
       <ModalListDevices
         visible={showModalList}

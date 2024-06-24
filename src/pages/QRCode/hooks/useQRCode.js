@@ -15,7 +15,7 @@ export const useQRCode = () => {
   const [pairedDevices, setPairedDevices] = useState([]);
   const [foundDs, setFoundDs] = useState([]);
 
-  const {DetailListManager} = NativeModules;
+  const {DetailListManager, PrintManager} = NativeModules;
 
   const [bleOpend, setBleOpend] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -269,6 +269,7 @@ export const useQRCode = () => {
     disconnectDevice,
     onPressPairedDeviceBluetooth,
     DetailListManager,
+    PrintManager,
 
     boundAddress,
     showModalList,
