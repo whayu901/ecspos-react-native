@@ -2,22 +2,32 @@ package com.myapp.managers;
 
 import static android.app.Activity.RESULT_OK;
 
+//import static androidx.appcompat.graphics.drawable.DrawableContainerCompat.Api21Impl.getResources;
+
 import android.app.Activity;
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
+import android.os.Looper;
+import android.os.Message;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.epson.lwprint.sdk.LWPrint;
+import com.epson.lwprint.sdk.LWPrintCallback;
+import com.epson.lwprint.sdk.LWPrintConnectionStatus;
 import com.epson.lwprint.sdk.LWPrintDataProvider;
 import com.epson.lwprint.sdk.LWPrintDiscoverPrinter;
 import com.epson.lwprint.sdk.LWPrintParameterKey;
 
+import com.epson.lwprint.sdk.LWPrintPrintingPhase;
+import com.epson.lwprint.sdk.LWPrintStatusError;
 import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
@@ -25,9 +35,11 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableMap;
+import com.myapp.R;
 import com.myapp.model.ContentsData;
 import com.myapp.utils.LWPrintContentsXmlParser;
 import com.myapp.utils.LWPrintUtils;
+import com.myapp.utils.NotificationUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,6 +50,7 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Logger;
 
 public class PrintManager extends ReactContextBaseJavaModule {
 
@@ -47,8 +60,7 @@ public class PrintManager extends ReactContextBaseJavaModule {
         super(reactContext);
         this.reactContext = reactContext;
         lwPrint = new LWPrint(reactContext);
-//        this.reactContext.addActivityEventListener((ActivityEventListener) this);
-
+        lwPrint.setCallback(printListener = new PrinterCallback());
     }
 
     private  final String TAG = getClass().getSimpleName();
@@ -63,9 +75,12 @@ public class PrintManager extends ReactContextBaseJavaModule {
     }
 
     LWPrint lwPrint;
+    PrinterCallback printListener;
 //    PrintCallback printListener;
 
     private ArrayList<String> _formNames = null;
+
+    private static final int NOTIFICATION_ID = 1;
 
     private boolean _processing = false;
     private ProgressDialog progressDialog;
@@ -79,7 +94,7 @@ public class PrintManager extends ReactContextBaseJavaModule {
 
     private Promise printPromise;
 
-//    android.os.Handler handler = new android.os.Handler();
+    android.os.Handler handler = new android.os.Handler(Looper.getMainLooper());
 
 
 
@@ -117,18 +132,20 @@ public class PrintManager extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void performPrint() {
-        if (_formNames == null) {
-            return;
-        }
-        if (_formNames.size() <= _jobNumber) {
-//            printComplete(LWPrintConnectionStatus.NoError, LWPrintStatusError.NoError, false);
-            _processing = false;
-            return;
-        }
 
-        if (_printerInfo == null) {
-            return;
-        }
+
+//        if (_formNames == null) {
+//            return;
+//        }
+//        if (_formNames.size() <= _jobNumber) {
+////            printComplete(LWPrintConnectionStatus.NoError, LWPrintStatusError.NoError, false);
+//            _processing = false;
+//            return;
+//        }
+//
+//        if (_printerInfo == null) {
+//            return;
+//        }
 
 //        handler.postDelayed(() -> {
 //            if(progressDialog == null) {
@@ -136,11 +153,13 @@ public class PrintManager extends ReactContextBaseJavaModule {
 //            }
 //        }, 1);
 
-        Log.i("PrinterStatus", "Printer Status: " + _printerInfo);
+
 
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.execute(() -> {
-            lwPrint.setPrinterInformation(_printerInfo);
+
+//            Log.i("PrinterStatus", "Printer Status: " + _printerInfo);
+//            lwPrint.setPrinterInformation(_printerInfo);
 
             if(_lwStatus == null) {
                 _lwStatus = lwPrint.fetchPrinterStatus();
@@ -171,7 +190,7 @@ public class PrintManager extends ReactContextBaseJavaModule {
                     LWPrintUtils.DEFAULT_DENSITY_SETTING);
             printParameter.put(LWPrintParameterKey.TapeWidth, tapeWidth);
 
-            lwPrint.doPrint(sampleDataProvider, printParameter);
+//            lwPrint.doPrint(sampleDataProvider, printParameter);
 
         });
 
@@ -180,58 +199,171 @@ public class PrintManager extends ReactContextBaseJavaModule {
             timer = null;
         }
         timer = new Timer();
-//        TimerTask task = (new TimerTask() {
-//            @Override
-//            public void run() {
-//                handler.post(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        float progress = lwPrint.getProgressOfPrint();
-//                        if (progressDialog != null) {
-//                            progressDialog.setProgress((int) (progress * 100));
-//                        }
-//                        int printingPage = lwPrint.getPageNumberOfPrinting();
-////                        textPrintingPage.setText(String.valueOf(printingPage));
-//                    }
-//                });
-//            }
-//        });
-//        timer.schedule(task, 1000, 1000);
 
     }
+    private void runProgressDialogForPrinting() {
+        handler.post(new Runnable() {
+            public void run() {
+                createProgressDialogForPrinting();
+            }
+        });
+    }
 
-//    @Override
-//    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        if (printPromise != null) {
-//            if (resultCode == RESULT_OK && data != null) {
-//                // Prepare data to send back to React Native
-//                WritableMap resultMap = Arguments.createMap();
-//                resultMap.putString(LWPrintDiscoverPrinter.PRINTER_INFO_NAME, data.getStringExtra(LWPrintDiscoverPrinter.PRINTER_INFO_NAME));
-//                resultMap.putString(LWPrintDiscoverPrinter.PRINTER_INFO_PRODUCT, data.getStringExtra(LWPrintDiscoverPrinter.PRINTER_INFO_PRODUCT));
-//                resultMap.putString(LWPrintDiscoverPrinter.PRINTER_INFO_USBMDL, data.getStringExtra(LWPrintDiscoverPrinter.PRINTER_INFO_USBMDL));
-//                resultMap.putString(LWPrintDiscoverPrinter.PRINTER_INFO_HOST, data.getStringExtra(LWPrintDiscoverPrinter.PRINTER_INFO_HOST));
-//                resultMap.putString(LWPrintDiscoverPrinter.PRINTER_INFO_PORT, data.getStringExtra(LWPrintDiscoverPrinter.PRINTER_INFO_PORT));
-//                resultMap.putString(LWPrintDiscoverPrinter.PRINTER_INFO_TYPE, data.getStringExtra(LWPrintDiscoverPrinter.PRINTER_INFO_TYPE));
-//                resultMap.putString(LWPrintDiscoverPrinter.PRINTER_INFO_DOMAIN, data.getStringExtra(LWPrintDiscoverPrinter.PRINTER_INFO_DOMAIN));
-//                resultMap.putString(LWPrintDiscoverPrinter.PRINTER_INFO_SERIAL_NUMBER, data.getStringExtra(LWPrintDiscoverPrinter.PRINTER_INFO_SERIAL_NUMBER));
-//                resultMap.putString(LWPrintDiscoverPrinter.PRINTER_INFO_DEVICE_CLASS, data.getStringExtra(LWPrintDiscoverPrinter.PRINTER_INFO_DEVICE_CLASS));
-//                resultMap.putString(LWPrintDiscoverPrinter.PRINTER_INFO_DEVICE_STATUS, data.getStringExtra(LWPrintDiscoverPrinter.PRINTER_INFO_DEVICE_STATUS));
-//
-//                // Resolve the promise with the data
-//                printPromise.resolve(resultMap);
-//            } else {
-//                // Handle failure or cancellation
-//                printPromise.reject("PRINT_ACTIVITY_ERROR", "Printing activity canceled or failed");
-//            }
-//            printPromise = null; // Reset the promise
-//
-//        }
-//    }
+    class PrinterCallback implements LWPrintCallback {
+        @Override
+        public void onChangePrintOperationPhase(LWPrint lWPrint, int phase) {
+            Log.i(TAG,
+                    "onChangePrintOperationPhase: phase=" + phase);
+            waitDialog.dismiss();
+            String jobPhase = "";
+            switch (phase) {
+                case LWPrintPrintingPhase.Prepare:
+                    jobPhase = "PrintingPhasePrepare";
+                    break;
+                case LWPrintPrintingPhase.Processing:
+                    jobPhase = "PrintingPhaseProcessing";
+                    break;
+                case LWPrintPrintingPhase.WaitingForPrint:
+                    jobPhase = "PrintingPhaseWaitingForPrint";
+                    break;
+                case LWPrintPrintingPhase.Complete:
+                    jobPhase = "PrintingPhaseComplete";
+                    if (timer != null) {
+                        timer.cancel();
+                        timer = null;
+                    }
+                    if (progressDialog != null) {
+                        progressDialog.setProgress(0);
+                        progressDialog.dismiss();
+                        progressDialog = null;
+                    }
+                    runProgressDialogForPrinting();
+
+
+                    _jobNumber++;
+                    performPrint();
+                    break;
+                default:
+                    if (progressDialog != null) {
+                        progressDialog.setProgress(0);
+                        progressDialog.dismiss();
+                        progressDialog = null;
+                    }
+                    runProgressDialogForPrinting();
+
+                    break;
+            }
+        }
+
+        @Override
+        public void onChangeTapeFeedOperationPhase(LWPrint lWPrint, int phase) {
+            Log.i(TAG,
+                    "onChangeTapeFeedOperationPhase: phase=" + phase);
+            String jobPhase = "";
+            switch (phase) {
+                case LWPrintPrintingPhase.Prepare:
+                    jobPhase = "PrintingPhasePrepare";
+                    break;
+                case LWPrintPrintingPhase.Processing:
+                    jobPhase = "PrintingPhaseProcessing";
+                    break;
+                case LWPrintPrintingPhase.WaitingForPrint:
+                    jobPhase = "PrintingPhaseWaitingForPrint";
+                    break;
+                case LWPrintPrintingPhase.Complete:
+                    jobPhase = "PrintingPhaseComplete";
+                    waitDialog.dismiss();
+
+                    _processing = false;
+                    break;
+                default:
+                    waitDialog.dismiss();
+
+                    break;
+            }
+        }
+
+        @Override
+        public void onAbortPrintOperation(LWPrint lWPrint, int errorStatus,
+                                          int deviceStatus) {
+            Log.i(TAG,
+                    "onAbortPrintOperation: errorStatus=" + errorStatus
+                            + ", deviceStatus=" + deviceStatus);
+            waitDialog.dismiss();
+//            printComplete(errorStatus, deviceStatus, false);
+
+            if (timer != null) {
+                timer.cancel();
+                timer = null;
+            }
+            if (progressDialog != null) {
+                progressDialog.setProgress(0);
+                progressDialog.dismiss();
+                progressDialog = null;
+            }
+            runProgressDialogForPrinting();
+            _processing = false;
+
+            String message = "Error Status : " + errorStatus
+                    + "\nDevice Status : " + Integer.toHexString(deviceStatus);
+            Message msg = new Message();
+            msg.obj = message;
+
+        }
+
+        @Override
+        public void onSuspendPrintOperation(LWPrint lWPrint, int errorStatus,
+                                            int deviceStatus) {
+            Log.d(TAG,
+                    "onSuspendPrintOperation: errorStatus=" + errorStatus
+                            + ", deviceStatus=" + deviceStatus);
+            waitDialog.dismiss();
+//            printComplete(errorStatus, deviceStatus, true);
+            if (progressDialog != null) {
+                progressDialog.setProgress(0);
+                progressDialog.dismiss();
+                progressDialog = null;
+            }
+            runProgressDialogForPrinting();
+
+            String message = "Error Status : " + errorStatus
+                    + "\nDevice Status : " + Integer.toHexString(deviceStatus);
+            Message msg = new Message();
+            msg.obj = message;
+
+        }
+
+        @Override
+        public void onAbortTapeFeedOperation(LWPrint lWPrint, int errorStatus,
+                                             int deviceStatus) {
+            Log.d(TAG,
+                    "onAbortTapeFeedOperation: errorStatus=" + errorStatus
+                            + ", deviceStatus=" + deviceStatus);
+
+
+            if (timer != null) {
+                timer.cancel();
+                timer = null;
+            }
+            waitDialog.dismiss();
+            _processing = false;
+
+            String message = "Error Status : " + errorStatus
+                    + "\nDevice Status : " + Integer.toHexString(deviceStatus);
+            Message msg = new Message();
+            msg.obj = message;
+
+        }
+
+    }
+    }
 
 
     class SampleDataProvider implements LWPrintDataProvider {
 
         private static final String DATA_DIR = "template";
+
+        private ReactApplicationContext reactContext;
         private static final String IMAGE_DIR = "Image";
         private static final String KEY_PREFFIX = "_CONTENTS";
 
@@ -306,30 +438,4 @@ public class PrintManager extends ReactContextBaseJavaModule {
         public Bitmap getBitmapContentData(String s, int i) {
             return null;
         }
-
-
-//    public void printComplete(int connectionStatus, int status, boolean suspend) {
-//        String msg = "";
-//        if (connectionStatus == LWPrintConnectionStatus.NoError && status == LWPrintStatusError.NoError) {
-//            msg = "Print Complete.";
-//        } else {
-//            if (suspend) {
-//                msg = "Print Error Re-Print [" + Integer.toHexString(status)
-//                        + "].";
-//            } else {
-//                msg = "Print Error [" + Integer.toHexString(status) + "].";
-//            }
-//        }
-//
-//        String title = "Notification Print";
-//        int iconId = R.drawable.nortification;
-//        Intent intent = new Intent(this, getClass());
-//        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
-//        NotificationUtils notificationUtils = new NotificationUtils(this);
-//        Notification.Builder builder = notificationUtils.getNotification(pendingIntent, title, msg, iconId, true);
-//        notificationUtils.notify(NOTIFICATION_ID, builder);
-//    }
-
-
-    }
 }

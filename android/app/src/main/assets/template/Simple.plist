@@ -23,8 +23,6 @@
 			<string>Image-1</string>
 			<key>LWContentWidth</key>
 			<integer>20</integer>
-			<key>LWBorderType</key>
-			<string>LWBorderTypeSquare</string>
 		</dict>
 		<dict>
 			<key>LWContentType</key>
@@ -35,8 +33,6 @@
 			<integer>20</integer>
 			<key>LWLineBreakMode</key>
 			<string>LWLineBreakModeStretch</string>
-			<key>LWBorderType</key>
-			<string>LWBorderTypeSquare</string>
 		</dict>
 		<dict>
 			<key>LWContentType</key>
@@ -47,8 +43,6 @@
 			<integer>20</integer>
 			<key>LWLineBreakMode</key>
 			<string>LWLineBreakModeStretch</string>
-			<key>LWBorderType</key>
-			<string>LWBorderTypeSquare</string>
 		</dict>
 		<dict>
 			<key>LWContentType</key>
@@ -63,8 +57,6 @@
 			<integer>20</integer>
 			<key>LWContentID</key>
 			<string>String-2</string>
-			<key>LWBorderType</key>
-			<string>LWBorderTypeSquare</string>
 		</dict>
 		<dict>
 			<key>LWContentType</key>
@@ -73,8 +65,6 @@
 			<integer>20</integer>
 			<key>LWContentID</key>
 			<string>String-3</string>
-			<key>LWBorderType</key>
-			<string>LWBorderTypeSquare</string>
 		</dict>
 	</array>
 </dict>
