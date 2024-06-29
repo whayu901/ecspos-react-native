@@ -16,7 +16,8 @@ import androidx.annotation.NonNull;
         import com.epson.lwprint.sdk.LWPrint;
 import com.epson.lwprint.sdk.LWPrintCallback;
         import com.epson.lwprint.sdk.LWPrintDataProvider;
-        import com.epson.lwprint.sdk.LWPrintParameterKey;
+import com.epson.lwprint.sdk.LWPrintDiscoverPrinter;
+import com.epson.lwprint.sdk.LWPrintParameterKey;
 
 import com.epson.lwprint.sdk.LWPrintPrintingPhase;
         import com.facebook.react.bridge.Promise;
@@ -28,10 +29,14 @@ import com.facebook.react.bridge.ReactMethod;
 import com.myapp.utils.LWPrintContentsXmlParser;
 import com.myapp.utils.LWPrintUtils;
 
-        import java.io.IOException;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
@@ -47,6 +52,9 @@ public class PrintManager extends ReactContextBaseJavaModule {
         this.reactContext = reactContext;
         lwPrint = new LWPrint(reactContext);
         lwPrint.setCallback(printListener = new PrinterCallback());
+
+        // Initialize _printerInfo with default values or empty
+//        initializePrinterInfo();
     }
 
     private  final String TAG = getClass().getSimpleName();
@@ -110,10 +118,73 @@ public class PrintManager extends ReactContextBaseJavaModule {
         }
     }
 
+//    private void initializePrinterInfo() {
+//        // Initialize _printerInfo with default or initial values
+//        _printerInfo.put(LWPrintDiscoverPrinter.PRINTER_INFO_NAME, "");
+//        _printerInfo.put(LWPrintDiscoverPrinter.PRINTER_INFO_PRODUCT, "");
+//        _printerInfo.put(LWPrintDiscoverPrinter.PRINTER_INFO_USBMDL, "");
+//        _printerInfo.put(LWPrintDiscoverPrinter.PRINTER_INFO_HOST, "");
+//        _printerInfo.put(LWPrintDiscoverPrinter.PRINTER_INFO_PORT, "");
+//        _printerInfo.put(LWPrintDiscoverPrinter.PRINTER_INFO_TYPE, "");
+//        _printerInfo.put(LWPrintDiscoverPrinter.PRINTER_INFO_DOMAIN, "");
+//        _printerInfo.put(LWPrintDiscoverPrinter.PRINTER_INFO_SERIAL_NUMBER, "");
+//        _printerInfo.put(LWPrintDiscoverPrinter.PRINTER_INFO_DEVICE_CLASS, "");
+//        _printerInfo.put(LWPrintDiscoverPrinter.PRINTER_INFO_DEVICE_STATUS, "");
+//    }
+
 
 
     private void doCancel() {
         lwPrint.cancelPrint();
+    }
+
+    @ReactMethod
+    public void updatePrinterInfoFromJson(String jsonStr) {
+        Log.d("JSON Result:", jsonStr);
+
+        try {
+            JSONObject jsonObject = new JSONObject(jsonStr);
+
+
+            // Iterate through keys in the JSON object and put them into _printerInfo
+            Iterator<String> keys = jsonObject.keys();
+
+
+            _printerInfo = new HashMap<String, String>();
+            _printerInfo
+                    .put(LWPrintDiscoverPrinter.PRINTER_INFO_NAME,
+                            jsonObject.optString("name"));
+            _printerInfo
+                    .put(LWPrintDiscoverPrinter.PRINTER_INFO_PRODUCT,
+                            jsonObject.optString("product"));
+            _printerInfo
+                    .put(LWPrintDiscoverPrinter.PRINTER_INFO_USBMDL,
+                            jsonObject.optString("usbmdl"));
+            _printerInfo
+                    .put(LWPrintDiscoverPrinter.PRINTER_INFO_HOST,
+                            jsonObject.optString("host"));
+            _printerInfo
+                    .put(LWPrintDiscoverPrinter.PRINTER_INFO_PORT,
+                            jsonObject.optString("port"));
+            _printerInfo
+                    .put(LWPrintDiscoverPrinter.PRINTER_INFO_TYPE,
+                            jsonObject.optString("type"));
+            _printerInfo
+                    .put(LWPrintDiscoverPrinter.PRINTER_INFO_DOMAIN,
+                            jsonObject.optString("domain"));
+            _printerInfo
+                    .put(LWPrintDiscoverPrinter.PRINTER_INFO_SERIAL_NUMBER,
+                            jsonObject.optString("Serial Number"));
+            _printerInfo
+                    .put(LWPrintDiscoverPrinter.PRINTER_INFO_DEVICE_CLASS,
+                            jsonObject.optString("Device Class"));
+            _printerInfo
+                    .put(LWPrintDiscoverPrinter.PRINTER_INFO_DEVICE_STATUS,
+                            jsonObject.optString("Device Status"));
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
     @ReactMethod

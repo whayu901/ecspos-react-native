@@ -1,9 +1,10 @@
-import {useCallback, useEffect, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import {
   DeviceEventEmitter,
   PermissionsAndroid,
   Alert,
   NativeModules,
+  NativeEventEmitter,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
@@ -15,7 +16,13 @@ export const useQRCode = () => {
   const [pairedDevices, setPairedDevices] = useState([]);
   const [foundDs, setFoundDs] = useState([]);
 
-  const {DetailListManager, PrintManager} = NativeModules;
+  const {DetailListManager, PrintManager, DeviceEventManagerModule} =
+    NativeModules;
+
+  const eventEmitter = useMemo(
+    () => new NativeEventEmitter(DeviceEventManagerModule),
+    [DeviceEventManagerModule],
+  );
 
   const [bleOpend, setBleOpend] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -23,6 +30,31 @@ export const useQRCode = () => {
   const [boundAddress, setBoundAddress] = useState('');
   const [loadingConeect, setLoadingConnect] = useState(false);
   const [showModalList, setShowModalList] = useState(false);
+
+  useEffect(() => {
+    const subscription = eventEmitter.addListener(
+      'onIntentDataReceived',
+      async params => {
+        // Handle received intent data
+        console.log('Received intent data:', params);
+
+        // Example: Save data to AsyncStorage
+
+        try {
+          await AsyncStorage.setItem('printerInfo', JSON.stringify(params));
+
+          PrintManager.updatePrinterInfoFromJson(JSON.stringify(params));
+          console.log('Printer info saved to AsyncStorage');
+        } catch (error) {
+          console.error('Error saving printer info:', error);
+        }
+      },
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, [PrintManager, eventEmitter]);
 
   useEffect(() => {
     DeviceEventEmitter.addListener(
