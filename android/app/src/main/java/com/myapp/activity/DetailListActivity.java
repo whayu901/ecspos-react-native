@@ -13,6 +13,7 @@ package com.myapp.activity;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -20,6 +21,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Looper;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -27,8 +29,17 @@ import android.widget.ListView;
 
 import com.epson.lwprint.sdk.LWPrintDiscoverPrinter;
 import com.epson.lwprint.sdk.LWPrintDiscoverPrinterCallback;
+import com.facebook.react.ReactInstanceManager;
+import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.bridge.WritableMap;
+import com.myapp.MainActivity;
+import com.myapp.MainApplication;
 import com.myapp.R;
 import com.myapp.model.DeviceInfo;
+
+import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.ReactContext;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 
 public class DetailListActivity extends Activity {
 
@@ -45,9 +56,15 @@ public class DetailListActivity extends Activity {
     List<DeviceInfo> deviceList = new ArrayList<DeviceInfo>();
     ArrayAdapter<String> adapter;
 
+    private ReactApplicationContext reactContext;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        this.reactContext = reactContext;
+
+
         setContentView(R.layout.activity_search);
 
         listView = (ListView) findViewById(R.id.search_list_view);
@@ -58,12 +75,14 @@ public class DetailListActivity extends Activity {
         listView.setAdapter(adapter);
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @SuppressLint("UnsafeIntentLaunch")
             @Override
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
                 ListView lv = (ListView) parent;
                 String item = (String) lv.getItemAtPosition(position);
-                @SuppressLint("UnsafeIntentLaunch") Intent intent = getIntent();
+                Intent intent = getIntent();
+
                 intent.putExtra(LWPrintDiscoverPrinter.PRINTER_INFO_NAME,
                         deviceList.get(position).getName() != null ? deviceList.get(position).getName() : "");
                 intent.putExtra(LWPrintDiscoverPrinter.PRINTER_INFO_PRODUCT,
@@ -84,10 +103,18 @@ public class DetailListActivity extends Activity {
                         deviceList.get(position).getDeviceClass() != null ? deviceList.get(position).getDeviceClass() : "");
                 intent.putExtra(LWPrintDiscoverPrinter.PRINTER_INFO_DEVICE_STATUS,
                         deviceList.get(position).getDeviceStatus() != null ? deviceList.get(position).getDeviceStatus() : "");
+
                 setResult(RESULT_OK, intent);
+
+                emitEventToReactNative(intent);
+
+
                 finish();
             }
         });
+
+
+
 
         // Create LWPrintDiscoverPrinter
         List<String> typeList = new ArrayList<String>();
@@ -106,6 +133,24 @@ public class DetailListActivity extends Activity {
 
         lpPrintDiscoverPrinter.setCallback(listener = new ServiceCallback());
         lpPrintDiscoverPrinter.startDiscover(this);
+    }
+
+    private void emitEventToReactNative(Intent intent) {
+        ReactInstanceManager reactInstanceManager = getReactInstanceManager();
+        if (reactInstanceManager != null) {
+            ReactContext reactContext = reactInstanceManager.getCurrentReactContext();
+            if (reactContext != null) {
+                WritableMap params = Arguments.fromBundle(intent.getExtras());
+                reactContext
+                        .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                        .emit("onIntentDataReceived", params);
+            }
+        }
+    }
+
+    private ReactInstanceManager getReactInstanceManager() {
+        MainApplication mainApplication = (MainApplication) getApplication();
+        return mainApplication.getReactNativeHost().getReactInstanceManager();
     }
 
     class ServiceCallback implements LWPrintDiscoverPrinterCallback {
@@ -185,6 +230,7 @@ public class DetailListActivity extends Activity {
                 }
             }
         }
+
 
         private String getDeviceStatusForWifiDirect(int deviceStatus) {
             switch (deviceStatus) {

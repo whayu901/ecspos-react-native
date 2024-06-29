@@ -23,7 +23,7 @@ class MainApplication : Application(), ReactApplication {
               // Packages that cannot be autolinked yet can be added manually here, for example:
               // add(MyReactNativePackage())
               add(DetailListPackage());
-              add(PrintPackage())
+//              add(PrintPackage())
             }
 
         override fun getJSMainModuleName(): String = "index"
@@ -36,6 +36,8 @@ class MainApplication : Application(), ReactApplication {
 
   override val reactHost: ReactHost
     get() = getDefaultReactHost(this.applicationContext, reactNativeHost)
+
+
 
   override fun onCreate() {
     super.onCreate()

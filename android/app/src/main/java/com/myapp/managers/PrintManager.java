@@ -1,47 +1,34 @@
 package com.myapp.managers;
 
-import static android.app.Activity.RESULT_OK;
-
 //import static androidx.appcompat.graphics.drawable.DrawableContainerCompat.Api21Impl.getResources;
 
-import android.app.Activity;
-import android.app.Notification;
-import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.res.AssetManager;
+        import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
-import com.epson.lwprint.sdk.LWPrint;
+        import com.epson.lwprint.sdk.LWPrint;
 import com.epson.lwprint.sdk.LWPrintCallback;
-import com.epson.lwprint.sdk.LWPrintConnectionStatus;
-import com.epson.lwprint.sdk.LWPrintDataProvider;
-import com.epson.lwprint.sdk.LWPrintDiscoverPrinter;
-import com.epson.lwprint.sdk.LWPrintParameterKey;
+        import com.epson.lwprint.sdk.LWPrintDataProvider;
+        import com.epson.lwprint.sdk.LWPrintParameterKey;
 
 import com.epson.lwprint.sdk.LWPrintPrintingPhase;
-import com.epson.lwprint.sdk.LWPrintStatusError;
-import com.facebook.react.bridge.ActivityEventListener;
-import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.Promise;
+        import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
-import com.facebook.react.bridge.WritableMap;
-import com.myapp.R;
-import com.myapp.model.ContentsData;
+        import com.myapp.model.ContentsData;
 import com.myapp.utils.LWPrintContentsXmlParser;
 import com.myapp.utils.LWPrintUtils;
-import com.myapp.utils.NotificationUtils;
 
-import java.io.IOException;
+        import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,7 +37,6 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.logging.Logger;
 
 public class PrintManager extends ReactContextBaseJavaModule {
 
@@ -133,6 +119,10 @@ public class PrintManager extends ReactContextBaseJavaModule {
     @ReactMethod
     public void performPrint() {
 
+        if (_printerInfo == null) {
+            Toast.makeText(getReactApplicationContext(), "Printer not found", Toast.LENGTH_SHORT).show();
+        } else {
+
 
 //        if (_formNames == null) {
 //            return;
@@ -154,45 +144,35 @@ public class PrintManager extends ReactContextBaseJavaModule {
 //        }, 1);
 
 
-
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        executor.execute(() -> {
-
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+            executor.execute(() -> {
+                
+                lwPrint.setPrinterInformation(_printerInfo);  
 //            Log.i("PrinterStatus", "Printer Status: " + _printerInfo);
 //            lwPrint.setPrinterInformation(_printerInfo);
 
-            if(_lwStatus == null) {
-                _lwStatus = lwPrint.fetchPrinterStatus();
-            }
+//            if(_lwStatus == null) {
+//                _lwStatus = lwPrint.fetchPrinterStatus();
+//            }
 
-            if (_lwStatus != null) {
-                Log.i("PrinterStatus", "Printer Status: " + _lwStatus.toString());
-            } else {
-                Log.i("PrinterStatus", "Printer Status is null");
-            }
+                if (_lwStatus != null) {
+                    Log.i("PrinterStatus", "Printer Status: " + _lwStatus.toString());
+                } else {
+                    Log.i("PrinterStatus", "Printer Status is null");
+                }
 
 
-            int deviceError = lwPrint.getDeviceErrorFromStatus(_lwStatus);
-            int tapeWidth = lwPrint.getTapeWidthFromStatus(_lwStatus);
+                int deviceError = lwPrint.getDeviceErrorFromStatus(_lwStatus);
+                int tapeWidth = lwPrint.getTapeWidthFromStatus(_lwStatus);
 
-            SampleDataProvider sampleDataProvider = new SampleDataProvider("Simple" + SUFFIX);
-            Map<String, Object> printParameter = new HashMap<String, Object>();
+                SampleDataProvider sampleDataProvider = new SampleDataProvider("Simple" + SUFFIX, reactContext);
+                Map<String, Object> printParameter = getStringObjectMap(tapeWidth);
 
-            printParameter.put(LWPrintParameterKey.Copies,
-                    LWPrintUtils.DEFAULT_COPIES_SETTING);
-            printParameter.put(LWPrintParameterKey.TapeCut,
-                    LWPrintUtils.DEFAULT_TAPE_CUT_SETTING);
-            printParameter.put(LWPrintParameterKey.HalfCut,
-                    LWPrintUtils.DEFAULT_HALF_CUT_SETTING);
-            printParameter.put(LWPrintParameterKey.PrintSpeed,
-                    LWPrintUtils.DEFAULT_PRINT_SPEED_SETTING);
-            printParameter.put(LWPrintParameterKey.Density,
-                    LWPrintUtils.DEFAULT_DENSITY_SETTING);
-            printParameter.put(LWPrintParameterKey.TapeWidth, tapeWidth);
+                lwPrint.doPrint(sampleDataProvider, printParameter);
 
-//            lwPrint.doPrint(sampleDataProvider, printParameter);
+            });
 
-        });
+        }
 
         if (timer != null) {
             timer.cancel();
@@ -201,12 +181,130 @@ public class PrintManager extends ReactContextBaseJavaModule {
         timer = new Timer();
 
     }
+
+    @NonNull
+    private static Map<String, Object> getStringObjectMap(int tapeWidth) {
+        Map<String, Object> printParameter = new HashMap<String, Object>();
+
+        printParameter.put(LWPrintParameterKey.Copies,
+                LWPrintUtils.DEFAULT_COPIES_SETTING);
+        printParameter.put(LWPrintParameterKey.TapeCut,
+                LWPrintUtils.DEFAULT_TAPE_CUT_SETTING);
+        printParameter.put(LWPrintParameterKey.HalfCut,
+                LWPrintUtils.DEFAULT_HALF_CUT_SETTING);
+        printParameter.put(LWPrintParameterKey.PrintSpeed,
+                LWPrintUtils.DEFAULT_PRINT_SPEED_SETTING);
+        printParameter.put(LWPrintParameterKey.Density,
+                LWPrintUtils.DEFAULT_DENSITY_SETTING);
+        printParameter.put(LWPrintParameterKey.TapeWidth, tapeWidth);
+        return printParameter;
+    }
+
     private void runProgressDialogForPrinting() {
         handler.post(new Runnable() {
             public void run() {
                 createProgressDialogForPrinting();
             }
         });
+    }
+
+    class SampleDataProvider implements LWPrintDataProvider {
+
+        private static final String DATA_DIR = "template";
+
+        private ReactApplicationContext reactContext;
+        private static final String IMAGE_DIR = "Image";
+        private static final String KEY_PREFFIX = "_CONTENTS";
+
+        private String formName;
+
+        List<Object> _formData = null;
+        InputStream _formDataInputStream;
+
+        List<ContentsData> _contentsData = null;
+
+        public SampleDataProvider(String formName, ReactContext reactContext) {
+            this.formName = formName;
+            AssetManager as = reactContext.getResources().getAssets();
+
+            // Contents data
+            String contentsFileName = formName
+                    + KEY_PREFFIX + "." + "plist";
+            LWPrintContentsXmlParser xmlParser = new LWPrintContentsXmlParser();
+            InputStream in = null;
+            try {
+                in = as.open(DATA_DIR + "/" + contentsFileName);
+                _contentsData = xmlParser.parse(in, "UTF-8");
+            } catch (Exception ignored) {
+            } finally {
+                if (in != null) {
+                    try {
+                        in.close();
+                    } catch (IOException ignored) {
+                    }
+                    in = null;
+                }
+            }
+        }
+
+        @Override
+        public void startOfPrint() {
+
+        }
+
+        @Override
+        public void endOfPrint() {
+
+        }
+
+        @Override
+        public void startPage() {
+
+        }
+
+        @Override
+        public void endPage() {
+
+        }
+
+        @Override
+        public int getNumberOfPages() {
+            return 0;
+        }
+
+        @Override
+        public InputStream getFormDataForPage(int i) {
+            Log.d("Tag Input Stream", "getFormDataForPage: pageIndex="
+            );
+
+            if (_formDataInputStream != null) {
+                try {
+                    _formDataInputStream.close();
+                } catch (IOException e) {
+                    Log.e("Tag Input Stream", e.toString(), e);
+                }
+                _formDataInputStream = null;
+            }
+            try {
+                AssetManager as = reactContext.getResources().getAssets();
+                _formDataInputStream = as.open(DATA_DIR + "/" + formName);
+                Log.d("Tag Input Stream", "getFormDataForPage: " + formName + "=" + _formDataInputStream.available());
+            } catch (IOException e) {
+                Log.e("Tag Input Stream", e.toString(), e);
+            }
+
+            return _formDataInputStream;
+        }
+
+        @Override
+        public String getStringContentData(String s, int i) {
+            return null;
+        }
+
+        @Override
+        public Bitmap getBitmapContentData(String s, int i) {
+            return null;
+        }
     }
 
     class PrinterCallback implements LWPrintCallback {
@@ -359,83 +457,3 @@ public class PrintManager extends ReactContextBaseJavaModule {
     }
 
 
-    class SampleDataProvider implements LWPrintDataProvider {
-
-        private static final String DATA_DIR = "template";
-
-        private ReactApplicationContext reactContext;
-        private static final String IMAGE_DIR = "Image";
-        private static final String KEY_PREFFIX = "_CONTENTS";
-
-        private String formName;
-
-        List<Object> _formData = null;
-        InputStream _formDataInputStream;
-
-        List<ContentsData> _contentsData = null;
-
-        public SampleDataProvider(String formName) {
-            this.formName = formName;
-            AssetManager as = reactContext.getResources().getAssets();
-
-            // Contents data
-            String contentsFileName = "Simple"
-                    + KEY_PREFFIX + "." + "plist";
-            LWPrintContentsXmlParser xmlParser = new LWPrintContentsXmlParser();
-            InputStream in = null;
-            try {
-                in = as.open(DATA_DIR + "/" + contentsFileName);
-                _contentsData = xmlParser.parse(in, "UTF-8");
-            } catch (Exception e) {
-//                Logger.e(TAG, e.toString(), e);
-            } finally {
-                if (in != null) {
-                    try {
-                        in.close();
-                    } catch (IOException e) {
-                    }
-                    in = null;
-                }
-            }
-        }
-
-        @Override
-        public void startOfPrint() {
-
-        }
-
-        @Override
-        public void endOfPrint() {
-
-        }
-
-        @Override
-        public void startPage() {
-
-        }
-
-        @Override
-        public void endPage() {
-
-        }
-
-        @Override
-        public int getNumberOfPages() {
-            return 0;
-        }
-
-        @Override
-        public InputStream getFormDataForPage(int i) {
-            return null;
-        }
-
-        @Override
-        public String getStringContentData(String s, int i) {
-            return null;
-        }
-
-        @Override
-        public Bitmap getBitmapContentData(String s, int i) {
-            return null;
-        }
-}
