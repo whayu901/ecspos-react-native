@@ -3,14 +3,16 @@
 <plist version="1.0">
 <array>
 	<dict>
-		<key>String-1</key>
-		<string>String</string>
-		<key>String-2</key>
-		<string>1234567</string>
-		<key>String-3</key>
-		<string>QRCode</string>
-		<key>Image-1</key>
-		<string>Earth.png</string>
+		<key>BR-1</key>
+		<string>123456789012</string>
+		<key>ST-1</key>
+		<string>wahyu</string>
+		<key>ST-2</key>
+		<string>testing</string>
+		<key>ST-3</key>
+		<string>Partherno</string>
+		<key>QR-1</key>
+		<string>COba saja di scan bro</string>
 	</dict>
 </array>
 </plist>

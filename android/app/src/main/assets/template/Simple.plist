@@ -5,66 +5,69 @@
 	<key>LWContentType</key>
 	<string>LWContentTypeFrame</string>
 	<key>LWTapeLengthAuto</key>
-	<true/>
+    <true/>
 	<key>LWLayoutDirection</key>
 	<string>LWLayoutDirectionHorizontal</string>
 	<key>LWLengthMM</key>
-	<integer>100</integer>
+	<integer>120</integer>
 	<key>LWFrameSizeMode</key>
 	<string>LWFrameSizeModePercent</string>
-	<key>LWBorderType</key>
-	<string>LWBorderTypeRound</string>
 	<key>LWFrames</key>
 	<array>
-		<dict>
-			<key>LWContentType</key>
-			<string>LWContentTypeImage</string>
-			<key>LWContentID</key>
-			<string>Image-1</string>
-			<key>LWContentWidth</key>
-			<integer>20</integer>
-		</dict>
-		<dict>
-			<key>LWContentType</key>
-			<string>LWContentTypeString</string>
-			<key>LWContentID</key>
-			<string>String-1</string>
-			<key>LWContentWidth</key>
-			<integer>20</integer>
-			<key>LWLineBreakMode</key>
-			<string>LWLineBreakModeStretch</string>
-		</dict>
-		<dict>
-			<key>LWContentType</key>
-			<string>LWContentTypeVerticalString</string>
-			<key>LWContentID</key>
-			<string>String-1</string>
-			<key>LWContentWidth</key>
-			<integer>20</integer>
-			<key>LWLineBreakMode</key>
-			<string>LWLineBreakModeStretch</string>
-		</dict>
-		<dict>
-			<key>LWContentType</key>
-			<string>LWContentTypeBarcode</string>
-			<key>LWBarcodeType</key>
-			<string>LWBarcodeTypeEAN8</string>
-			<key>LWBarcodeShowText</key>
-			<true/>
-			<key>LWBarcodeStretch</key>
-			<true/>
-			<key>LWContentWidth</key>
-			<integer>20</integer>
-			<key>LWContentID</key>
-			<string>String-2</string>
-		</dict>
 		<dict>
 			<key>LWContentType</key>
 			<string>LWContentTypeQRCode</string>
 			<key>LWContentWidth</key>
 			<integer>20</integer>
 			<key>LWContentID</key>
-			<string>String-3</string>
+			<string>QR-1</string>
+			<key>LWQRCorrectQualityType</key>
+			<string>LWQRCorrectQualityTypeLow</string>
+		</dict>
+		<dict>
+			<key>LWContentType</key>
+			<string>LWContentTypeFrame</string>
+			<key>LWContentWidth</key>
+			<integer>30</integer>
+			<key>LWLayoutDirection</key>
+			<string>LWLayoutDirectionVertical</string>
+			<key>LWFrames</key>
+			<array>
+				<dict>
+					<key>LWContentType</key>
+					<string>LWContentTypeString</string>
+					<key>LWContentID</key>
+					<string>ST-1</string>
+					<key>LWContentHeight</key>
+					<integer>50</integer>
+					<key>LWTextAlignment</key>
+					<string>LWTextAlignmentCenter</string>
+				</dict>
+				<dict>
+					<key>LWContentType</key>
+					<string>LWContentTypeString</string>
+					<key>LWContentID</key>
+					<string>ST-2</string>
+					<key>LWContentHeight</key>
+					<integer>50</integer>
+					<key>LWFontSize</key>
+					<string>LWFontSizeSmall</string>
+					<key>LWTextAlignment</key>
+					<string>LWTextAlignmentCenter</string>
+				</dict>
+			</array>
+		</dict>
+		<dict>
+			<key>LWContentType</key>
+			<string>LWContentTypeString</string>
+			<key>LWContentID</key>
+			<string>ST-3</string>
+			<key>LWTextAlignment</key>
+			<string>LWTextAlignmentCenter</string>
+			<key>LWContentWidth</key>
+			<integer>30</integer>
+			<key>LWContentHeight</key>
+			<integer>50</integer>
 		</dict>
 	</array>
 </dict>

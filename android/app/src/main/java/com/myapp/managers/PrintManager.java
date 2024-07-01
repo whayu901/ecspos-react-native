@@ -2,10 +2,15 @@ package com.myapp.managers;
 
 //import static androidx.appcompat.graphics.drawable.DrawableContainerCompat.Api21Impl.getResources;
 
+import static androidx.core.app.ActivityCompat.startActivityForResult;
+
 import android.app.ProgressDialog;
+import android.bluetooth.BluetoothAdapter;
 import android.content.DialogInterface;
-        import android.content.res.AssetManager;
+import android.content.Intent;
+import android.content.res.AssetManager;
 import android.graphics.Bitmap;
+import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
@@ -46,12 +51,24 @@ import java.util.concurrent.Executors;
 public class PrintManager extends ReactContextBaseJavaModule {
 
     private ReactApplicationContext reactContext;
+    private Handler handler; // Handler for main (UI) thread
+    private static final int REQUEST_ENABLE_BT = 0;
 
     public PrintManager(ReactApplicationContext reactContext) {
         super(reactContext);
         this.reactContext = reactContext;
         lwPrint = new LWPrint(reactContext);
         lwPrint.setCallback(printListener = new PrinterCallback());
+
+        // ProgressDialog
+        this.handler = new Handler(Looper.getMainLooper());
+
+        // Bluetooth
+        checkAndEnableBluetooth();
+
+        // Create ProgressDialog
+        createProgressDialogForPrinting();
+
 
         // Initialize _printerInfo with default values or empty
 //        initializePrinterInfo();
@@ -88,33 +105,95 @@ public class PrintManager extends ReactContextBaseJavaModule {
 
     private Promise printPromise;
 
-    android.os.Handler handler = new android.os.Handler(Looper.getMainLooper());
-
+    private void checkAndEnableBluetooth() {
+        try {
+            BluetoothAdapter btAdapter = BluetoothAdapter.getDefaultAdapter();
+            if (btAdapter == null) {
+                Toast.makeText(reactContext,
+                        "Bluetooth is not available.", Toast.LENGTH_SHORT).show();
+            } else {
+                if (!btAdapter.isEnabled()) {
+                    Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                    // Use reactContext.startActivityForResult() instead of startActivityForResult()
+                    reactContext.startActivityForResult(intent, REQUEST_ENABLE_BT, null);
+                }
+            }
+        } catch (Exception e) {
+            Log.d(TAG, "Error checking or enabling Bluetooth", e);
+        }
+    }
 
 
     private void createProgressDialogForPrinting() {
         if (progressDialog == null) {
-            progressDialog = new ProgressDialog(reactContext);
-            progressDialog.setMessage("Now printing...");
-            progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-            progressDialog.setCancelable(false);
-            progressDialog.setMax(100);
-            progressDialog.incrementProgressBy(0);
-            progressDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel",
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
+            handler.post(new Runnable() {
+                             @Override
+                             public void run() {
+                                 progressDialog = new ProgressDialog(reactContext);
+                                 progressDialog.setMessage("Now printing...");
+                                 progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                                 progressDialog.setCancelable(false);
+                                 progressDialog.setMax(100);
+                                 progressDialog.incrementProgressBy(0);
+                                 progressDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel",
+                                         new DialogInterface.OnClickListener() {
+                                             public void onClick(DialogInterface dialog, int which) {
 //                            Logger.d(TAG, "Cancel onClick()");
-                            progressDialog.setProgress(0);
-                            dialog.cancel();
-                        }
-                    });
-            progressDialog
-                    .setOnCancelListener(new DialogInterface.OnCancelListener() {
-                        public void onCancel(DialogInterface dialog) {
+                                                 progressDialog.setProgress(0);
+                                                 dialog.cancel();
+                                             }
+                                         });
+                                 progressDialog
+                                         .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                                             public void onCancel(DialogInterface dialog) {
 //                            Logger.d(TAG, "Cancel onCancel()");
-                            doCancel();
-                        }
-                    });
+                                                 doCancel();
+                                             }
+                                         });
+                             } });
+
+        }
+    }
+
+    private void dismissProgressDialog() {
+        if (waitDialog != null && waitDialog.isShowing()) {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    progressDialog.dismiss();
+                    progressDialog = null;
+                    progressDialog.setProgress(0);
+                }
+            });
+        }
+    }
+
+    // Method to show wait dialog on UI thread
+    private void showWaitDialog() {
+        if (waitDialog == null) {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    waitDialog = new ProgressDialog(reactContext);
+                    waitDialog.setMessage("Now processing...");
+                    waitDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                    waitDialog.setCancelable(false);
+                    waitDialog.show();
+                }
+            });
+        }
+    }
+
+    // Method to dismiss wait dialog on UI thread
+    private void dismissWaitDialog() {
+        if (waitDialog != null && waitDialog.isShowing()) {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    waitDialog.dismiss();
+                    waitDialog = null;
+                }
+            });
         }
     }
 
@@ -187,6 +266,8 @@ public class PrintManager extends ReactContextBaseJavaModule {
         }
     }
 
+
+
     @ReactMethod
     public void performPrint() {
 
@@ -210,7 +291,7 @@ public class PrintManager extends ReactContextBaseJavaModule {
 
 //        handler.postDelayed(() -> {
 //            if(progressDialog == null) {
-//                progressDialog.show();
+//                createProgressDialogForPrinting();
 //            }
 //        }, 1);
 
@@ -222,11 +303,12 @@ public class PrintManager extends ReactContextBaseJavaModule {
 //            Log.i("PrinterStatus", "Printer Status: " + _printerInfo);
 //            lwPrint.setPrinterInformation(_printerInfo);
 
-//            if(_lwStatus == null) {
-//                _lwStatus = lwPrint.fetchPrinterStatus();
-//            }
+            if(_lwStatus == null) {
+                _lwStatus = lwPrint.fetchPrinterStatus();
+            }
 
                 if (_lwStatus != null) {
+//                    showWaitDialog();
                     Log.i("PrinterStatus", "Printer Status: " + _lwStatus.toString());
                 } else {
                     Log.i("PrinterStatus", "Printer Status is null");
@@ -299,8 +381,8 @@ public class PrintManager extends ReactContextBaseJavaModule {
             AssetManager as = reactContext.getResources().getAssets();
 
             // Contents data
-            String contentsFileName = formName
-                    + KEY_PREFFIX + "." + "plist";
+            String contentsFileName = LWPrintUtils.getPreffix(formName)
+                    + KEY_PREFFIX + "." +   LWPrintUtils.getSuffix(formName);;
             LWPrintContentsXmlParser xmlParser = new LWPrintContentsXmlParser();
             InputStream in = null;
             try {
@@ -320,27 +402,34 @@ public class PrintManager extends ReactContextBaseJavaModule {
 
         @Override
         public void startOfPrint() {
-
+            Log.d(TAG, "startOfPrint");
         }
 
         @Override
         public void endOfPrint() {
-
+            Log.d(TAG, "endOfPrint");
         }
 
         @Override
         public void startPage() {
-
+            Log.d(TAG, "startPage");
         }
 
         @Override
         public void endPage() {
-
+            Log.d(TAG, "endPage");
         }
 
         @Override
         public int getNumberOfPages() {
-            return 0;
+            if (_contentsData == null) {
+                Log.d(TAG, "getNumberOfPages: 0");
+                return 0;
+            } else {
+                Log.d(TAG, "getNumberOfPages: "
+                        + _contentsData.size());
+                return _contentsData.size();
+            }
         }
 
         @Override
@@ -356,6 +445,8 @@ public class PrintManager extends ReactContextBaseJavaModule {
                 }
                 _formDataInputStream = null;
             }
+
+            ReactApplicationContext reactContext = (ReactApplicationContext) getReactApplicationContext();
             try {
                 AssetManager as = reactContext.getResources().getAssets();
                 _formDataInputStream = as.open(DATA_DIR + "/" + formName);
@@ -368,8 +459,17 @@ public class PrintManager extends ReactContextBaseJavaModule {
         }
 
         @Override
-        public String getStringContentData(String s, int i) {
-            return null;
+        public String getStringContentData(String contentName, int pageIndex) {
+            Log.d(TAG,
+                    "getStringContentData: contentName=" + contentName
+                            + ", pageIndex=" + pageIndex);
+            String content = null;
+            if (_contentsData != null) {
+                int index = pageIndex - 1;
+                ContentsData pageDictionary = _contentsData.get(index);
+                content = pageDictionary.get(contentName);
+            }
+            return content;
         }
 
         @Override
@@ -383,7 +483,7 @@ public class PrintManager extends ReactContextBaseJavaModule {
         public void onChangePrintOperationPhase(LWPrint lWPrint, int phase) {
             Log.i(TAG,
                     "onChangePrintOperationPhase: phase=" + phase);
-            waitDialog.dismiss();
+            dismissWaitDialog();
             String jobPhase = "";
             switch (phase) {
                 case LWPrintPrintingPhase.Prepare:
@@ -403,7 +503,7 @@ public class PrintManager extends ReactContextBaseJavaModule {
                     }
                     if (progressDialog != null) {
                         progressDialog.setProgress(0);
-                        progressDialog.dismiss();
+//                        progressDialog.dismiss();
                         progressDialog = null;
                     }
                     runProgressDialogForPrinting();
@@ -415,7 +515,7 @@ public class PrintManager extends ReactContextBaseJavaModule {
                 default:
                     if (progressDialog != null) {
                         progressDialog.setProgress(0);
-                        progressDialog.dismiss();
+//                        progressDialog.dismiss();
                         progressDialog = null;
                     }
                     runProgressDialogForPrinting();
