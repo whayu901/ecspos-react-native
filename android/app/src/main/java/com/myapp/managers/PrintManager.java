@@ -201,7 +201,6 @@ public class PrintManager extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void updatePrinterInfoFromJson(String jsonStr) {
-        Log.d("JSON Result:", jsonStr);
 
         try {
             JSONObject jsonObject = new JSONObject(jsonStr);
@@ -251,7 +250,7 @@ public class PrintManager extends ReactContextBaseJavaModule {
 
 
     @ReactMethod
-    public void performPrint() {
+    public void performPrint(String jsonStringData) {
 
         if (_printerInfo == null) {
             Toast.makeText(getReactApplicationContext(), "Printer Tidak Ditemukan", Toast.LENGTH_SHORT).show();
@@ -275,7 +274,7 @@ public class PrintManager extends ReactContextBaseJavaModule {
                 int deviceError = lwPrint.getDeviceErrorFromStatus(_lwStatus);
                 int tapeWidth = lwPrint.getTapeWidthFromStatus(_lwStatus);
 
-                SampleDataProvider sampleDataProvider = new SampleDataProvider("Simple" + SUFFIX, reactContext);
+                SampleDataProvider sampleDataProvider = new SampleDataProvider("Simple" + SUFFIX, jsonStringData, reactContext);
                 Map<String, Object> printParameter = getStringObjectMap(tapeWidth);
 
                 lwPrint.doPrint(sampleDataProvider, printParameter);
@@ -324,7 +323,7 @@ public class PrintManager extends ReactContextBaseJavaModule {
 
         List<ContentsData> _contentsData = null;
 
-        public SampleDataProvider(String formName, ReactContext reactContext) {
+        public SampleDataProvider(String formName, String jsonStringData, ReactContext reactContext) {
             this.formName = formName;
             AssetManager as = reactContext.getResources().getAssets();
 
@@ -333,15 +332,40 @@ public class PrintManager extends ReactContextBaseJavaModule {
                     + KEY_PREFFIX + "." +   LWPrintUtils.getSuffix(formName);;
             LWPrintContentsXmlParser xmlParser = new LWPrintContentsXmlParser();
             InputStream in = null;
+
+
+            // Parse JSON Data
+
             try {
+                JSONObject jsonObject = new JSONObject(jsonStringData);
+
                 in = as.open(DATA_DIR + "/" + contentsFileName);
                 _contentsData = xmlParser.parse(in, "UTF-8");
 
                 for (ContentsData data : _contentsData) {
                     HashMap<String, String> elementMap = data.getElementMap();
+                    if (elementMap.containsKey("ST-1")) {
+                        elementMap.put("ST-1", jsonObject.optString("refId"));
+                    }
+
+                    if (elementMap.containsKey("ST-2")) {
+                        elementMap.put("ST-2", jsonObject.optString("trial"));
+                    }
+
                     if (elementMap.containsKey("ST-3")) {
-                        elementMap.put("ST-3", "Inggrid");
-                        break; // Assuming only one element needs updating
+                        elementMap.put("ST-3", jsonObject.optString("plot"));
+                    }
+
+                    if (elementMap.containsKey("ST-4")) {
+                        elementMap.put("ST-4", jsonObject.optString("pokok"));
+                    }
+
+                    if (elementMap.containsKey("ST-5")) {
+                        elementMap.put("ST-5", jsonObject.optString("sample"));
+                    }
+
+                    if (elementMap.containsKey("ST-6")) {
+                        elementMap.put("ST-6", jsonObject.optString("typeFruit"));
                     }
                 }
             } catch (Exception ignored) {

@@ -16,6 +16,15 @@ const QRCode = () => {
     PrintManager,
   } = useQRCode();
 
+  const exampleDataPrint: any = {
+    typeFruit: 'Parterno',
+    sample: '1',
+    trial: '1',
+    pokok: '1',
+    plot: '1',
+    refId: '1223213jjhjhjh3j123',
+  };
+
   return (
     <View style={styles.container}>
       <TouchableOpacity
@@ -25,7 +34,9 @@ const QRCode = () => {
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.btnContainer, {marginTop: 10, backgroundColor: 'red'}]}
-        onPress={() => PrintManager.performPrint()}>
+        onPress={() =>
+          PrintManager.performPrint(JSON.stringify(exampleDataPrint))
+        }>
         <Text style={styles.labelBtn}>Print perform</Text>
       </TouchableOpacity>
 
