@@ -9,36 +9,32 @@
         <key>LWLayoutDirection</key>
         <string>LWLayoutDirectionHorizontal</string>
         <key>LWLengthMM</key>
-        <integer>150</integer>
+        <integer>120</integer>
         <key>LWFrameSizeMode</key>
         <string>LWFrameSizeModePercent</string>
+        <key>LWMargins</key>
+        <string>LWMarginsNumberMM</string>
+        <key>LWMarginsValue</key>
+        <integer>3</integer>
         <key>LWFrames</key>
         <array>
-            <!-- QR Code -->
             <dict>
                 <key>LWContentType</key>
                 <string>LWContentTypeQRCode</string>
                 <key>LWContentWidth</key>
                 <integer>20</integer>
-                <key>LWContentHeight</key>
-                <integer>20</integer>
                 <key>LWContentID</key>
                 <string>QR-1</string>
                 <key>LWQRCorrectQualityType</key>
-                <string>LWQRCorrectQualityTypeLow</string>
-                <key>LWFrameSizeMode</key>
-                <string>LWFrameSizeModeAuto</string>
-
+                <string>LWQRCorrectQualityTypeMiddle</string>
             </dict>
-
-            <!-- Text strings -->
             <dict>
                 <key>LWContentType</key>
                 <string>LWContentTypeFrame</string>
                 <key>LWContentWidth</key>
-                <integer>30</integer>
+                <integer>24</integer>
                 <key>LWContentHeight</key>
-                <integer>30</integer>
+                <integer>140</integer>
                 <key>LWLayoutDirection</key>
                 <string>LWLayoutDirectionVertical</string>
                 <key>LWFrames</key>
@@ -49,15 +45,13 @@
                         <key>LWContentID</key>
                         <string>ST-1</string>
                         <key>LWContentWidth</key>
-                        <integer>100</integer>
+                        <integer>24</integer>
                         <key>LWContentHeight</key>
-                        <integer>16</integer>
+                        <integer>20</integer>
                         <key>LWFontSize</key>
-                        <string>LWFontSizeMedium</string>
+                        <string>LWFontSizeLarge</string>
                         <key>LWTextAlignment</key>
-                        <string>LWTextAlignmentLeft</string>
-                        <key>LWFrameSizeMode</key>
-                        <string>LWFrameSizeModeAuto</string>
+                        <string>LWTextAlignmentCenter</string>
                     </dict>
                     <dict>
                         <key>LWContentType</key>
@@ -65,15 +59,13 @@
                         <key>LWContentID</key>
                         <string>ST-2</string>
                         <key>LWContentWidth</key>
-                        <integer>100</integer>
+                        <integer>24</integer>
                         <key>LWContentHeight</key>
-                        <integer>16</integer>
+                        <integer>20</integer>
                         <key>LWFontSize</key>
-                        <string>LWFontSizeMedium</string>
+                        <string>LWFontSizeLarge</string>
                         <key>LWTextAlignment</key>
-                        <string>LWTextAlignmentLeft</string>
-                        <key>LWFrameSizeMode</key>
-                        <string>LWFrameSizeModeAuto</string>
+                        <string>LWTextAlignmentCenter</string>
                     </dict>
                     <dict>
                         <key>LWContentType</key>
@@ -81,15 +73,13 @@
                         <key>LWContentID</key>
                         <string>ST-3</string>
                         <key>LWContentWidth</key>
-                        <integer>100</integer>
+                        <integer>24</integer>
                         <key>LWContentHeight</key>
-                        <integer>16</integer>
+                        <integer>20</integer>
                         <key>LWFontSize</key>
-                        <string>LWFontSizeMedium</string>
+                        <string>LWFontSizeLarge</string>
                         <key>LWTextAlignment</key>
-                        <string>LWTextAlignmentLeft</string>
-                        <key>LWFrameSizeMode</key>
-                        <string>LWFrameSizeModeAuto</string>
+                        <string>LWTextAlignmentCenter</string>
                     </dict>
                     <dict>
                         <key>LWContentType</key>
@@ -97,15 +87,13 @@
                         <key>LWContentID</key>
                         <string>ST-4</string>
                         <key>LWContentWidth</key>
-                        <integer>100</integer>
+                        <integer>24</integer>
                         <key>LWContentHeight</key>
-                        <integer>16</integer>
+                        <integer>20</integer>
                         <key>LWFontSize</key>
-                        <string>LWFontSizeMedium</string>
+                        <string>LWFontSizeLarge</string>
                         <key>LWTextAlignment</key>
-                        <string>LWTextAlignmentLeft</string>
-                        <key>LWFrameSizeMode</key>
-                        <string>LWFrameSizeModeAuto</string>
+                        <string>LWTextAlignmentCenter</string>
                     </dict>
                     <dict>
                         <key>LWContentType</key>
@@ -113,15 +101,13 @@
                         <key>LWContentID</key>
                         <string>ST-5</string>
                         <key>LWContentWidth</key>
-                        <integer>100</integer>
+                        <integer>24</integer>
                         <key>LWContentHeight</key>
-                        <integer>16</integer>
+                        <integer>20</integer>
                         <key>LWFontSize</key>
-                        <string>LWFontSizeMedium</string>
+                        <string>LWFontSizeLarge</string>
                         <key>LWTextAlignment</key>
-                        <string>LWTextAlignmentLeft</string>
-                        <key>LWFrameSizeMode</key>
-                        <string>LWFrameSizeModeAuto</string>
+                        <string>LWTextAlignmentCenter</string>
                     </dict>
                     <dict>
                         <key>LWContentType</key>
@@ -129,15 +115,13 @@
                         <key>LWContentID</key>
                         <string>ST-6</string>
                         <key>LWContentWidth</key>
-                        <integer>100</integer>
+                        <integer>24</integer>
                         <key>LWContentHeight</key>
-                        <integer>16</integer>
+                        <integer>20</integer>
                         <key>LWFontSize</key>
-                        <string>LWFontSizeMedium</string>
+                        <string>LWFontSizeLarge</string>
                         <key>LWTextAlignment</key>
-                        <string>LWTextAlignmentLeft</string>
-                        <key>LWFrameSizeMode</key>
-                        <string>LWFrameSizeModeAuto</string>
+                        <string>LWTextAlignmentCenter</string>
                     </dict>
                 </array>
             </dict>
