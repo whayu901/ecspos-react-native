@@ -1,7 +1,5 @@
 package com.myapp.managers;
 
-//import static androidx.appcompat.graphics.drawable.DrawableContainerCompat.Api21Impl.getResources;
-
 import static androidx.core.app.ActivityCompat.startActivityForResult;
 
 import android.app.ProgressDialog;
@@ -75,8 +73,6 @@ public class PrintManager extends ReactContextBaseJavaModule {
     }
 
     private  final String TAG = getClass().getSimpleName();
-
-    private static final String KEY_FORMDATA = "formdata";
     private static final String SUFFIX = ".plist";
 
     @NonNull
@@ -197,20 +193,6 @@ public class PrintManager extends ReactContextBaseJavaModule {
         }
     }
 
-//    private void initializePrinterInfo() {
-//        // Initialize _printerInfo with default or initial values
-//        _printerInfo.put(LWPrintDiscoverPrinter.PRINTER_INFO_NAME, "");
-//        _printerInfo.put(LWPrintDiscoverPrinter.PRINTER_INFO_PRODUCT, "");
-//        _printerInfo.put(LWPrintDiscoverPrinter.PRINTER_INFO_USBMDL, "");
-//        _printerInfo.put(LWPrintDiscoverPrinter.PRINTER_INFO_HOST, "");
-//        _printerInfo.put(LWPrintDiscoverPrinter.PRINTER_INFO_PORT, "");
-//        _printerInfo.put(LWPrintDiscoverPrinter.PRINTER_INFO_TYPE, "");
-//        _printerInfo.put(LWPrintDiscoverPrinter.PRINTER_INFO_DOMAIN, "");
-//        _printerInfo.put(LWPrintDiscoverPrinter.PRINTER_INFO_SERIAL_NUMBER, "");
-//        _printerInfo.put(LWPrintDiscoverPrinter.PRINTER_INFO_DEVICE_CLASS, "");
-//        _printerInfo.put(LWPrintDiscoverPrinter.PRINTER_INFO_DEVICE_STATUS, "");
-//    }
-
 
 
     private void doCancel() {
@@ -272,43 +254,18 @@ public class PrintManager extends ReactContextBaseJavaModule {
     public void performPrint() {
 
         if (_printerInfo == null) {
-            Toast.makeText(getReactApplicationContext(), "Printer not found", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getReactApplicationContext(), "Printer Tidak Ditemukan", Toast.LENGTH_SHORT).show();
         } else {
-
-
-//        if (_formNames == null) {
-//            return;
-//        }
-//        if (_formNames.size() <= _jobNumber) {
-////            printComplete(LWPrintConnectionStatus.NoError, LWPrintStatusError.NoError, false);
-//            _processing = false;
-//            return;
-//        }
-//
-//        if (_printerInfo == null) {
-//            return;
-//        }
-
-//        handler.postDelayed(() -> {
-//            if(progressDialog == null) {
-//                createProgressDialogForPrinting();
-//            }
-//        }, 1);
-
-
             ExecutorService executor = Executors.newSingleThreadExecutor();
             executor.execute(() -> {
                 
-                lwPrint.setPrinterInformation(_printerInfo);  
-//            Log.i("PrinterStatus", "Printer Status: " + _printerInfo);
-//            lwPrint.setPrinterInformation(_printerInfo);
+                lwPrint.setPrinterInformation(_printerInfo);
 
             if(_lwStatus == null) {
                 _lwStatus = lwPrint.fetchPrinterStatus();
             }
 
                 if (_lwStatus != null) {
-//                    showWaitDialog();
                     Log.i("PrinterStatus", "Printer Status: " + _lwStatus.toString());
                 } else {
                     Log.i("PrinterStatus", "Printer Status is null");
@@ -326,13 +283,6 @@ public class PrintManager extends ReactContextBaseJavaModule {
             });
 
         }
-
-        if (timer != null) {
-            timer.cancel();
-            timer = null;
-        }
-        timer = new Timer();
-
     }
 
     @NonNull
@@ -365,8 +315,6 @@ public class PrintManager extends ReactContextBaseJavaModule {
 
         private static final String DATA_DIR = "template";
 
-        private ReactApplicationContext reactContext;
-        private static final String IMAGE_DIR = "Image";
         private static final String KEY_PREFFIX = "_CONTENTS";
 
         private String formName;
@@ -388,6 +336,14 @@ public class PrintManager extends ReactContextBaseJavaModule {
             try {
                 in = as.open(DATA_DIR + "/" + contentsFileName);
                 _contentsData = xmlParser.parse(in, "UTF-8");
+
+                for (ContentsData data : _contentsData) {
+                    HashMap<String, String> elementMap = data.getElementMap();
+                    if (elementMap.containsKey("ST-3")) {
+                        elementMap.put("ST-3", "Inggrid");
+                        break; // Assuming only one element needs updating
+                    }
+                }
             } catch (Exception ignored) {
             } finally {
                 if (in != null) {
@@ -510,7 +466,7 @@ public class PrintManager extends ReactContextBaseJavaModule {
 
 
                     _jobNumber++;
-                    performPrint();
+//                    performPrint();
                     break;
                 default:
                     if (progressDialog != null) {
@@ -558,18 +514,18 @@ public class PrintManager extends ReactContextBaseJavaModule {
             Log.i(TAG,
                     "onAbortPrintOperation: errorStatus=" + errorStatus
                             + ", deviceStatus=" + deviceStatus);
-            waitDialog.dismiss();
+//            waitDialog.dismiss();
 //            printComplete(errorStatus, deviceStatus, false);
 
             if (timer != null) {
                 timer.cancel();
                 timer = null;
             }
-            if (progressDialog != null) {
-                progressDialog.setProgress(0);
-                progressDialog.dismiss();
-                progressDialog = null;
-            }
+//            if (progressDialog != null) {
+//                progressDialog.setProgress(0);
+//                progressDialog.dismiss();
+//                progressDialog = null;
+//            }
             runProgressDialogForPrinting();
             _processing = false;
 
@@ -586,13 +542,13 @@ public class PrintManager extends ReactContextBaseJavaModule {
             Log.d(TAG,
                     "onSuspendPrintOperation: errorStatus=" + errorStatus
                             + ", deviceStatus=" + deviceStatus);
-            waitDialog.dismiss();
+//            waitDialog.dismiss();
 //            printComplete(errorStatus, deviceStatus, true);
-            if (progressDialog != null) {
-                progressDialog.setProgress(0);
-                progressDialog.dismiss();
-                progressDialog = null;
-            }
+//            if (progressDialog != null) {
+//                progressDialog.setProgress(0);
+//                progressDialog.dismiss();
+//                progressDialog = null;
+//            }
             runProgressDialogForPrinting();
 
             String message = "Error Status : " + errorStatus
@@ -614,7 +570,7 @@ public class PrintManager extends ReactContextBaseJavaModule {
                 timer.cancel();
                 timer = null;
             }
-            waitDialog.dismiss();
+//            waitDialog.dismiss();
             _processing = false;
 
             String message = "Error Status : " + errorStatus

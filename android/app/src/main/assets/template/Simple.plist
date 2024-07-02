@@ -12,6 +12,10 @@
 	<integer>120</integer>
 	<key>LWFrameSizeMode</key>
 	<string>LWFrameSizeModePercent</string>
+	<key>LWMargins</key>
+    	<string>LWMarginsNumberMM</string>
+    	<key>LWMarginsValue</key>
+    	<integer>3</integer>
 	<key>LWFrames</key>
 	<array>
 		<dict>
@@ -22,12 +26,14 @@
 			<key>LWContentID</key>
 			<string>QR-1</string>
 			<key>LWQRCorrectQualityType</key>
-			<string>LWQRCorrectQualityTypeLow</string>
+			<string>LWQRCorrectQualityTypeMiddle</string>
 		</dict>
 		<dict>
 			<key>LWContentType</key>
 			<string>LWContentTypeFrame</string>
 			<key>LWContentWidth</key>
+			<key>LWContentHeight</key>
+            <real>33.3</real>
 			<integer>30</integer>
 			<key>LWLayoutDirection</key>
 			<string>LWLayoutDirectionVertical</string>
@@ -38,8 +44,8 @@
 					<string>LWContentTypeString</string>
 					<key>LWContentID</key>
 					<string>ST-1</string>
-					<key>LWContentHeight</key>
-					<integer>50</integer>
+					<key>LWContentWidth</key>
+                    <integer>30</integer>
 					<key>LWTextAlignment</key>
 					<string>LWTextAlignmentCenter</string>
 				</dict>
@@ -48,27 +54,28 @@
 					<string>LWContentTypeString</string>
 					<key>LWContentID</key>
 					<string>ST-2</string>
-					<key>LWContentHeight</key>
-					<integer>50</integer>
+					<key>LWContentWidth</key>
+                    <integer>30</integer>
 					<key>LWFontSize</key>
 					<string>LWFontSizeSmall</string>
 					<key>LWTextAlignment</key>
 					<string>LWTextAlignmentCenter</string>
 				</dict>
+				<dict>
+                			<key>LWContentType</key>
+                			<string>LWContentTypeString</string>
+                			<key>LWContentID</key>
+                			<string>ST-3</string>
+                			<key>LWTextAlignment</key>
+                			<string>LWTextAlignmentCenter</string>
+                			<key>LWContentWidth</key>
+                            <integer>30</integer>
+                			<key>LWContentHeight</key>
+                			<integer>20</integer>
+                		</dict>
 			</array>
 		</dict>
-		<dict>
-			<key>LWContentType</key>
-			<string>LWContentTypeString</string>
-			<key>LWContentID</key>
-			<string>ST-3</string>
-			<key>LWTextAlignment</key>
-			<string>LWTextAlignmentCenter</string>
-			<key>LWContentWidth</key>
-			<integer>30</integer>
-			<key>LWContentHeight</key>
-			<integer>50</integer>
-		</dict>
+
 	</array>
 </dict>
 </plist>
