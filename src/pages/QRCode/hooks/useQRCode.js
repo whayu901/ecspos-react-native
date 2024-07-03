@@ -215,9 +215,7 @@ export const useQRCode = () => {
       refId: '1223213jjhjhjh3j123',
     };
 
-    PrintManager.performPrint(JSON.stringify(exampleDataPrint));
-
-    PrintManager.completePrintValidation()
+    PrintManager.performPrint(JSON.stringify(exampleDataPrint))
       .then(() => {
         setIsLoadingPrint(false);
 

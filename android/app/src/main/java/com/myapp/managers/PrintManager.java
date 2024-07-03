@@ -250,36 +250,42 @@ public class PrintManager extends ReactContextBaseJavaModule {
 
 
     @ReactMethod
-    public void performPrint(String jsonStringData) {
+    public void performPrint(String jsonStringData, Promise promise) {
 
-        if (_printerInfo == null) {
-            Toast.makeText(getReactApplicationContext(), "Printer Tidak Ditemukan", Toast.LENGTH_SHORT).show();
-        } else {
-            ExecutorService executor = Executors.newSingleThreadExecutor();
-            executor.execute(() -> {
-                
-                lwPrint.setPrinterInformation(_printerInfo);
+        try {
+            if (_printerInfo == null) {
+                Toast.makeText(getReactApplicationContext(), "Printer Tidak Ditemukan", Toast.LENGTH_SHORT).show();
+            } else {
+                ExecutorService executor = Executors.newSingleThreadExecutor();
+                executor.execute(() -> {
 
-            if(_lwStatus == null) {
-                _lwStatus = lwPrint.fetchPrinterStatus();
+                    lwPrint.setPrinterInformation(_printerInfo);
+
+                    if(_lwStatus == null) {
+                        _lwStatus = lwPrint.fetchPrinterStatus();
+                    }
+
+                    if (_lwStatus != null) {
+                        Log.i("PrinterStatus", "Printer Status: " + _lwStatus.toString());
+                    } else {
+                        Log.i("PrinterStatus", "Printer Status is null");
+                    }
+
+
+                    int deviceError = lwPrint.getDeviceErrorFromStatus(_lwStatus);
+                    int tapeWidth = lwPrint.getTapeWidthFromStatus(_lwStatus);
+
+                    SampleDataProvider sampleDataProvider = new SampleDataProvider("Simple" + SUFFIX, jsonStringData, reactContext);
+                    Map<String, Object> printParameter = getStringObjectMap(tapeWidth);
+
+                    lwPrint.doPrint(sampleDataProvider, printParameter);
+
+                    printListener.setPromise(promise);
+                });
+
             }
-
-                if (_lwStatus != null) {
-                    Log.i("PrinterStatus", "Printer Status: " + _lwStatus.toString());
-                } else {
-                    Log.i("PrinterStatus", "Printer Status is null");
-                }
-
-
-                int deviceError = lwPrint.getDeviceErrorFromStatus(_lwStatus);
-                int tapeWidth = lwPrint.getTapeWidthFromStatus(_lwStatus);
-
-                SampleDataProvider sampleDataProvider = new SampleDataProvider("Simple" + SUFFIX, jsonStringData, reactContext);
-                Map<String, Object> printParameter = getStringObjectMap(tapeWidth);
-
-                lwPrint.doPrint(sampleDataProvider, printParameter);
-            });
-
+        } catch (Exception e) {
+            promise.reject("PRINT_OUT_ERROR", e);
         }
     }
 
@@ -307,15 +313,6 @@ public class PrintManager extends ReactContextBaseJavaModule {
                 createProgressDialogForPrinting();
             }
         });
-    }
-
-    @ReactMethod
-    public void completePrintValidation(Promise promise) {
-        try {
-            printListener.setPromise(promise);
-        } catch (Exception e) {
-            promise.reject("CHECK_CONDITION_ERROR", e);
-        }
     }
 
     class SampleDataProvider implements LWPrintDataProvider {
