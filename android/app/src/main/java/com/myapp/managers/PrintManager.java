@@ -278,7 +278,6 @@ public class PrintManager extends ReactContextBaseJavaModule {
                 Map<String, Object> printParameter = getStringObjectMap(tapeWidth);
 
                 lwPrint.doPrint(sampleDataProvider, printParameter);
-
             });
 
         }
@@ -308,6 +307,15 @@ public class PrintManager extends ReactContextBaseJavaModule {
                 createProgressDialogForPrinting();
             }
         });
+    }
+
+    @ReactMethod
+    public void completePrintValidation(Promise promise) {
+        try {
+            printListener.setPromise(promise);
+        } catch (Exception e) {
+            promise.reject("CHECK_CONDITION_ERROR", e);
+        }
     }
 
     class SampleDataProvider implements LWPrintDataProvider {
@@ -459,6 +467,12 @@ public class PrintManager extends ReactContextBaseJavaModule {
     }
 
     class PrinterCallback implements LWPrintCallback {
+
+        private Promise promise;
+
+        public void setPromise(Promise promise) {
+            this.promise = promise;
+        }
         @Override
         public void onChangePrintOperationPhase(LWPrint lWPrint, int phase) {
             Log.i(TAG,
@@ -483,19 +497,23 @@ public class PrintManager extends ReactContextBaseJavaModule {
                     }
                     if (progressDialog != null) {
                         progressDialog.setProgress(0);
-//                        progressDialog.dismiss();
                         progressDialog = null;
                     }
                     runProgressDialogForPrinting();
 
 
+                    boolean isValid = performValidation();
+                    if (isValid) {
+                        promise.resolve("Print operation completed successfully.");
+                    } else {
+                        promise.reject("PRINT_VALIDATION_ERROR", "Print validation failed.");
+                    }
+
                     _jobNumber++;
-//                    performPrint();
                     break;
                 default:
                     if (progressDialog != null) {
                         progressDialog.setProgress(0);
-//                        progressDialog.dismiss();
                         progressDialog = null;
                     }
                     runProgressDialogForPrinting();
@@ -523,6 +541,7 @@ public class PrintManager extends ReactContextBaseJavaModule {
                     jobPhase = "PrintingPhaseComplete";
                     waitDialog.dismiss();
 
+
                     _processing = false;
                     break;
                 default:
@@ -530,6 +549,11 @@ public class PrintManager extends ReactContextBaseJavaModule {
 
                     break;
             }
+        }
+
+        private boolean performValidation() {
+            // Perform your validation logic here
+            return true; // Example: Always return true for illustration
         }
 
         @Override

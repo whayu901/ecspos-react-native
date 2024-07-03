@@ -31,6 +31,8 @@ export const useQRCode = () => {
   const [loadingConeect, setLoadingConnect] = useState(false);
   const [showModalList, setShowModalList] = useState(false);
 
+  const [isLoadingPrint, setIsLoadingPrint] = useState(false);
+
   useEffect(() => {
     const subscription = eventEmitter.addListener(
       'onIntentDataReceived',
@@ -201,6 +203,31 @@ export const useQRCode = () => {
     );
   }, [foundDs]);
 
+  const printPerform = async () => {
+    setIsLoadingPrint(true);
+
+    const exampleDataPrint = {
+      typeFruit: 'Parterno',
+      sample: '1',
+      trial: '1',
+      pokok: '1',
+      plot: '1',
+      refId: '1223213jjhjhjh3j123',
+    };
+
+    PrintManager.performPrint(JSON.stringify(exampleDataPrint));
+
+    PrintManager.completePrintValidation()
+      .then(() => {
+        setIsLoadingPrint(false);
+
+        Alert.alert('Sukses', 'Berhasil Melakukan Print');
+      })
+      .catch(() => {
+        setIsLoadingPrint(false);
+      });
+  };
+
   const printPaper = async () => {
     const isBluetoothEnabled = await BluetoothManager.isBluetoothEnabled();
 
@@ -302,9 +329,12 @@ export const useQRCode = () => {
     onPressPairedDeviceBluetooth,
     DetailListManager,
     PrintManager,
+    printPerform,
 
     boundAddress,
     showModalList,
     setShowModalList,
+
+    isLoadingPrint,
   };
 };
