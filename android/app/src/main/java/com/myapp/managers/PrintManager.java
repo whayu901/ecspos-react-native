@@ -255,6 +255,8 @@ public class PrintManager extends ReactContextBaseJavaModule {
         try {
             if (_printerInfo == null) {
                 Toast.makeText(getReactApplicationContext(), "Printer Tidak Ditemukan", Toast.LENGTH_SHORT).show();
+
+                promise.reject("PRINTER_NOT_FOUND", "Printer not found");
             } else {
                 ExecutorService executor = Executors.newSingleThreadExecutor();
                 executor.execute(() -> {
