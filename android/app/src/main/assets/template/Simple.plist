@@ -9,7 +9,7 @@
         <key>LWLayoutDirection</key>
         <string>LWLayoutDirectionHorizontal</string>
         <key>LWLengthMM</key>
-        <integer>120</integer>
+        <integer>100</integer>
         <key>LWFrameSizeMode</key>
         <string>LWFrameSizeModePercent</string>
         <key>LWMargins</key>
@@ -23,6 +23,8 @@
                 <string>LWContentTypeQRCode</string>
                 <key>LWContentWidth</key>
                 <integer>20</integer>
+                <key>LWContentHeight</key>
+                <integer>100</integer>
                 <key>LWContentID</key>
                 <string>QR-1</string>
                 <key>LWQRCorrectQualityType</key>
@@ -32,9 +34,9 @@
                 <key>LWContentType</key>
                 <string>LWContentTypeFrame</string>
                 <key>LWContentWidth</key>
-                <integer>24</integer>
+                <integer>50</integer>
                 <key>LWContentHeight</key>
-                <integer>140</integer>
+                <integer>100</integer>
                 <key>LWLayoutDirection</key>
                 <string>LWLayoutDirectionVertical</string>
                 <key>LWFrames</key>
@@ -45,13 +47,11 @@
                         <key>LWContentID</key>
                         <string>ST-1</string>
                         <key>LWContentWidth</key>
-                        <integer>24</integer>
+                        <integer>40</integer>
                         <key>LWContentHeight</key>
-                        <integer>20</integer>
-                        <key>LWFontSize</key>
-                        <string>LWFontSizeLarge</string>
+                        <integer>16.6</integer>
                         <key>LWTextAlignment</key>
-                        <string>LWTextAlignmentCenter</string>
+                        <string>LWTextAlignmentLeft</string>
                     </dict>
                     <dict>
                         <key>LWContentType</key>
@@ -59,13 +59,12 @@
                         <key>LWContentID</key>
                         <string>ST-2</string>
                         <key>LWContentWidth</key>
-                        <integer>24</integer>
+                        <integer>40</integer>
                         <key>LWContentHeight</key>
-                        <integer>20</integer>
-                        <key>LWFontSize</key>
-                        <string>LWFontSizeLarge</string>
+                        <integer>16.6</integer>
+                        
                         <key>LWTextAlignment</key>
-                        <string>LWTextAlignmentCenter</string>
+                        <string>LWTextAlignmentLeft</string>
                     </dict>
                     <dict>
                         <key>LWContentType</key>
@@ -73,13 +72,12 @@
                         <key>LWContentID</key>
                         <string>ST-3</string>
                         <key>LWContentWidth</key>
-                        <integer>24</integer>
+                        <integer>40</integer>
                         <key>LWContentHeight</key>
-                        <integer>20</integer>
-                        <key>LWFontSize</key>
-                        <string>LWFontSizeLarge</string>
+                        <integer>16.6</integer>
+                        
                         <key>LWTextAlignment</key>
-                        <string>LWTextAlignmentCenter</string>
+                        <string>LWTextAlignmentLeft</string>
                     </dict>
                     <dict>
                         <key>LWContentType</key>
@@ -87,27 +85,27 @@
                         <key>LWContentID</key>
                         <string>ST-4</string>
                         <key>LWContentWidth</key>
-                        <integer>24</integer>
+                        <integer>40</integer>
                         <key>LWContentHeight</key>
-                        <integer>20</integer>
-                        <key>LWFontSize</key>
-                        <string>LWFontSizeLarge</string>
+                        <integer>16.6</integer>
+                        
                         <key>LWTextAlignment</key>
-                        <string>LWTextAlignmentCenter</string>
+                        <string>LWTextAlignmentLeft</string>
                     </dict>
+
+
                     <dict>
                         <key>LWContentType</key>
                         <string>LWContentTypeString</string>
                         <key>LWContentID</key>
                         <string>ST-5</string>
                         <key>LWContentWidth</key>
-                        <integer>24</integer>
+                        <integer>40</integer>
                         <key>LWContentHeight</key>
-                        <integer>20</integer>
-                        <key>LWFontSize</key>
-                        <string>LWFontSizeLarge</string>
+                        <integer>16.6</integer>
+                        
                         <key>LWTextAlignment</key>
-                        <string>LWTextAlignmentCenter</string>
+                        <string>LWTextAlignmentLeft</string>
                     </dict>
                     <dict>
                         <key>LWContentType</key>
@@ -115,13 +113,12 @@
                         <key>LWContentID</key>
                         <string>ST-6</string>
                         <key>LWContentWidth</key>
-                        <integer>24</integer>
+                        <integer>40</integer>
                         <key>LWContentHeight</key>
-                        <integer>20</integer>
-                        <key>LWFontSize</key>
-                        <string>LWFontSizeLarge</string>
+                        <integer>16.6</integer>
+                        
                         <key>LWTextAlignment</key>
-                        <string>LWTextAlignmentCenter</string>
+                        <string>LWTextAlignmentLeft</string>
                     </dict>
                 </array>
             </dict>

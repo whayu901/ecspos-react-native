@@ -207,12 +207,12 @@ export const useQRCode = () => {
     setIsLoadingPrint(true);
 
     const exampleDataPrint = {
-      typeFruit: 'Parterno',
+      typeFruit: 'Patherno',
       sample: '1',
-      trial: '1',
-      pokok: '1',
-      plot: '1',
-      refId: '1223213jjhjhjh3j123',
+      trial: 'SB07889',
+      pokok: '11',
+      plot: '1902',
+      refId: 'testing_refId',
     };
 
     PrintManager.performPrint(JSON.stringify(exampleDataPrint))

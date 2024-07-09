@@ -273,7 +273,6 @@ public class PrintManager extends ReactContextBaseJavaModule {
                         Log.i("PrinterStatus", "Printer Status is null");
                     }
 
-
                     int deviceError = lwPrint.getDeviceErrorFromStatus(_lwStatus);
                     int tapeWidth = lwPrint.getTapeWidthFromStatus(_lwStatus);
 
@@ -356,7 +355,8 @@ public class PrintManager extends ReactContextBaseJavaModule {
                     }
 
                     if (elementMap.containsKey("ST-2")) {
-                        elementMap.put("ST-2", jsonObject.optString("trial"));
+                        String mergedString = jsonObject.optString("trial") + "_" + jsonObject.optString("plot") + "_" + jsonObject.optString("pokok");
+                        elementMap.put("ST-2", mergedString);
                     }
 
                     if (elementMap.containsKey("ST-3")) {
