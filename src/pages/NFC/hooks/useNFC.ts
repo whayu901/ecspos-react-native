@@ -20,6 +20,7 @@ export const useNFC = () => {
   const [loadingRead, setLoadingRead] = useState(false);
   const [loadingWrite, setLoadingWrite] = useState(false);
   const [nfcEventListener, setNfcEventListener] = useState<any>(null);
+  const [isModalNFC, setModalNFC] = useState<boolean>(false);
 
   useEffect(() => {
     const checkIsSupported = async () => {
@@ -51,32 +52,43 @@ export const useNFC = () => {
     };
   }, [nfcEventListener]);
 
-  const setupNfcEventListener = () => {
-    if (nfcEventListener) {
-      nfcEventListener.remove();
-    }
-    const eventListener = NfcManager.setEventListener(
-      NfcEvents.DiscoverTag,
-      (tag: any) => {
-        const payload = tag.ndefMessage[0].payload;
-        const payloadStr = Ndef.text.decodePayload(payload);
-        const jsonData = JSON.parse(payloadStr);
-
-        setLoadingRead(false);
-        setResult(JSON.stringify(jsonData));
-      },
-    );
-    setNfcEventListener(eventListener);
+  const onDismissReadNFC = () => {
+    setLoadingRead(false);
   };
 
-  const readTag = async () => {
+  const readTag = () => {
     setLoadingRead(true);
-    try {
-      await NfcManager.registerTagEvent();
-      setupNfcEventListener();
-    } catch (error) {
-      console.warn(error);
-    }
+
+    return new Promise(async (resolve, reject) => {
+      try {
+        await NfcManager.registerTagEvent();
+        // setupNfcEventListener();
+        if (nfcEventListener) {
+          nfcEventListener.remove();
+        }
+        const eventListener = NfcManager.setEventListener(
+          NfcEvents.DiscoverTag,
+          (tag: any) => {
+            if (tag.ndefMessage) {
+              const payload = tag.ndefMessage[0].payload;
+              const payloadStr = Ndef.text.decodePayload(payload);
+              const jsonData = JSON.parse(payloadStr);
+
+              setLoadingRead(false);
+              setResult(JSON.stringify(jsonData));
+
+              resolve('success');
+            } else {
+              onDismissReadNFC();
+            }
+          },
+        );
+        setNfcEventListener(eventListener);
+      } catch (error) {
+        console.warn(error);
+        reject(error);
+      }
+    });
   };
 
   const writeNFC = async () => {
@@ -105,5 +117,8 @@ export const useNFC = () => {
     loadingWrite,
     readTag,
     writeNFC,
+    isModalNFC,
+    setModalNFC,
+    onDismissReadNFC,
   };
 };

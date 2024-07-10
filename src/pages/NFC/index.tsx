@@ -5,13 +5,30 @@ import {
   TouchableOpacity,
   View,
   ActivityIndicator,
+  Modal,
 } from 'react-native';
 
 import {useNFC} from './hooks/useNFC';
 
 const NFCScreen = () => {
-  const {loadingRead, loadingWrite, hasNfc, result, readTag, writeNFC} =
-    useNFC();
+  const {
+    loadingRead,
+    loadingWrite,
+    hasNfc,
+    result,
+    readTag,
+    writeNFC,
+    isModalNFC,
+    setModalNFC,
+    onDismissReadNFC,
+  } = useNFC();
+
+  const onReadTag = () => {
+    setModalNFC(true);
+    readTag()
+      .then(() => setModalNFC(false))
+      .catch(() => setModalNFC(false));
+  };
   return (
     <View>
       {!hasNfc ? (
@@ -32,7 +49,9 @@ const NFCScreen = () => {
           </View>
           <TouchableOpacity
             style={styles.button}
-            onPress={readTag}
+            onPress={() => {
+              onReadTag();
+            }}
             disabled={loadingRead}>
             <Text style={styles.buttonLabel}>Scan NFC</Text>
           </TouchableOpacity>
@@ -46,6 +65,25 @@ const NFCScreen = () => {
           {loadingWrite && <ActivityIndicator size="large" color="green" />}
         </View>
       )}
+
+      <Modal visible={isModalNFC} animationType="slide" transparent>
+        <View style={styles.containerModal}>
+          <View style={styles.content}>
+            <Text style={{color: 'black'}}>Hello world</Text>
+
+            <TouchableOpacity
+              onPress={() => {
+                setModalNFC(false);
+                onDismissReadNFC();
+              }}
+              style={styles.btnCloseModal}>
+              <Text style={{color: 'white', textAlign: 'center', fontSize: 18}}>
+                Tutup
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -54,6 +92,24 @@ const styles = StyleSheet.create({
   containerButton: {
     marginHorizontal: 15,
     marginTop: 15,
+  },
+  containerModal: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  btnCloseModal: {
+    backgroundColor: 'red',
+    padding: 14,
+    borderRadius: 10,
+    marginVertical: 10,
+  },
+  content: {
+    backgroundColor: 'white',
+    padding: 15,
+    borderTopEndRadius: 20,
+    borderTopStartRadius: 20,
+    justifyContent: 'center',
   },
   button: {
     backgroundColor: 'red',
