@@ -366,6 +366,10 @@ public class PrintManager extends ReactContextBaseJavaModule {
                     if (elementMap.containsKey("ST-6")) {
                         elementMap.put("ST-6", jsonObject.optString("typeFruit"));
                     }
+
+                    if (elementMap.containsKey("QR-1")) {
+                        elementMap.put("QR-1", jsonObject.optString("qrCode"));
+                    }
                 }
             } catch (Exception ignored) {
             } finally {

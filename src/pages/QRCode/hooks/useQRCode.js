@@ -207,12 +207,20 @@ export const useQRCode = () => {
     setIsLoadingPrint(true);
 
     const exampleDataPrint = {
-      typeFruit: 'Patherno',
-      sample: '1',
-      trial: 'SB07889',
-      pokok: '11',
-      plot: '1902',
-      refId: 'testing_refId',
+      estate: 'KSB',
+      trial: 'SB03_066KSB14',
+      trialCode: 'B0066',
+      trialId: 82,
+      palmId: '96955',
+      palm: 'Pokok 1',
+      block: 'A14a',
+      plot: '1-2460',
+      sampleNo: '1',
+      palmNo: '1',
+      timeStamp: '2024-07-15 21:00:53',
+      qrCode:
+        'T4zA5BTT3qtssiV1XYwbIkbs8Y/lzbkeH6RkPpHVakWP+7fcy92Qx03k83a1itJFswcbwqosdNzyOqtUjfSydJXgSB3+MNMy2hM2HZPDylQxd1Es5T7BYhBgCa9uX+qRZKRBAP8uqClkn3rqWdHbXVqFzek/igmERdYAEqXuQgymOqFSPFciNFm+bvhTs7895a4uoSjmbqNu0s6MAEllNQnTRYh8mMIS34NCtBUtrfqQdHgDn6coSCpigK2NQnnLfjn/liJil6R3n3hRviEfhw==',
+      refId: 'T4zA5BTT3q',
     };
 
     PrintManager.performPrint(JSON.stringify(exampleDataPrint))

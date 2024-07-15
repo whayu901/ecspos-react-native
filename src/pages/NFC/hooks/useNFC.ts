@@ -45,6 +45,8 @@ export const useNFC = () => {
 
     return () => {
       subscription.remove();
+      NfcManager.setEventListener(NfcEvents.DiscoverTag, null);
+      NfcManager.unregisterTagEvent().catch(() => 0);
       NfcManager.cancelTechnologyRequest();
       if (nfcEventListener) {
         nfcEventListener.remove();
@@ -61,6 +63,7 @@ export const useNFC = () => {
 
     return new Promise(async (resolve, reject) => {
       try {
+        // await NfcManager.requestTechnology(NfcTech.Ndef);
         await NfcManager.registerTagEvent();
         // setupNfcEventListener();
         if (nfcEventListener) {
@@ -69,9 +72,11 @@ export const useNFC = () => {
         const eventListener = NfcManager.setEventListener(
           NfcEvents.DiscoverTag,
           (tag: any) => {
+            console.log({tag});
+
             if (tag) {
-              const payload = tag.ndefMessage[0].payload;
-              const payloadStr = Ndef.text.decodePayload(payload);
+              const payload = tag?.ndefMessage[0]?.payload;
+              const payloadStr = Ndef?.text?.decodePayload(payload);
               const jsonData = JSON.parse(payloadStr);
 
               setLoadingRead(false);

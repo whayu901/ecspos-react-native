@@ -28,7 +28,7 @@
                 <key>LWContentID</key>
                 <string>QR-1</string>
                 <key>LWQRCorrectQualityType</key>
-                <string>LWQRCorrectQualityTypeMiddle</string>
+                <string>LWQRCorrectQualityTypeLow</string>
             </dict>
             <dict>
                 <key>LWContentType</key>
