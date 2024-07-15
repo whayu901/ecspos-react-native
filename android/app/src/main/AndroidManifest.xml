@@ -41,7 +41,7 @@
             android:name="com.myapp.activity.DetailListActivity"
             android:screenOrientation="fullSensor"
             android:configChanges="keyboardHidden|orientation"
-            tools:ignore="DiscouragedApi">
+            >
         </activity>
     </application>
 </manifest>

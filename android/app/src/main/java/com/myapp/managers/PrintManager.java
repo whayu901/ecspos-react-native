@@ -273,7 +273,6 @@ public class PrintManager extends ReactContextBaseJavaModule {
                         Log.i("PrinterStatus", "Printer Status is null");
                     }
 
-                    int deviceError = lwPrint.getDeviceErrorFromStatus(_lwStatus);
                     int tapeWidth = lwPrint.getTapeWidthFromStatus(_lwStatus);
 
                     SampleDataProvider sampleDataProvider = new SampleDataProvider("Simple" + SUFFIX, jsonStringData, reactContext);
@@ -359,13 +358,6 @@ public class PrintManager extends ReactContextBaseJavaModule {
                         elementMap.put("ST-2", mergedString);
                     }
 
-                    if (elementMap.containsKey("ST-3")) {
-                        elementMap.put("ST-3", jsonObject.optString("plot"));
-                    }
-
-                    if (elementMap.containsKey("ST-4")) {
-                        elementMap.put("ST-4", jsonObject.optString("pokok"));
-                    }
 
                     if (elementMap.containsKey("ST-5")) {
                         elementMap.put("ST-5", jsonObject.optString("sample"));

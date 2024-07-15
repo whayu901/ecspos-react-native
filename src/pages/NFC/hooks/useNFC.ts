@@ -69,15 +69,18 @@ export const useNFC = () => {
         const eventListener = NfcManager.setEventListener(
           NfcEvents.DiscoverTag,
           (tag: any) => {
-            if (tag.ndefMessage) {
+            if (tag) {
               const payload = tag.ndefMessage[0].payload;
               const payloadStr = Ndef.text.decodePayload(payload);
               const jsonData = JSON.parse(payloadStr);
 
               setLoadingRead(false);
               setResult(JSON.stringify(jsonData));
-
               resolve('success');
+
+              setTimeout(() => {
+                Alert.alert('Berhasil', 'Berhasil Scan NFC');
+              }, 500);
             } else {
               onDismissReadNFC();
             }
@@ -93,6 +96,7 @@ export const useNFC = () => {
 
   const writeNFC = async () => {
     setLoadingWrite(true);
+
     try {
       await NfcManager.requestTechnology(NfcTech.Ndef);
 

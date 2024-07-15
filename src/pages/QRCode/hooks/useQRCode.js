@@ -59,32 +59,32 @@ export const useQRCode = () => {
   }, [PrintManager, eventEmitter]);
 
   useEffect(() => {
-    DeviceEventEmitter.addListener(
-      BluetoothManager.EVENT_DEVICE_ALREADY_PAIRED,
-      rsp => {
-        deviceAlreadPaired(rsp);
-      },
-    );
+    // DeviceEventEmitter.addListener(
+    //   BluetoothManager.EVENT_DEVICE_ALREADY_PAIRED,
+    //   rsp => {
+    //     deviceAlreadPaired(rsp);
+    //   },
+    // );
 
-    const gettingData = async () => {
-      try {
-        const value = await AsyncStorage.getItem('printerAddress');
-        console.log({value});
-        if (value !== null) {
-          setBoundAddress(value);
-          await BluetoothManager.connect(value);
-        }
-      } catch (e) {
-        console.log(e);
-      }
-    };
+    // const gettingData = async () => {
+    //   try {
+    //     const value = await AsyncStorage.getItem('printerAddress');
+    //     console.log({value});
+    //     if (value !== null) {
+    //       setBoundAddress(value);
+    //       await BluetoothManager.connect(value);
+    //     }
+    //   } catch (e) {
+    //     console.log(e);
+    //   }
+    // };
 
-    gettingData();
+    // gettingData();
 
-    if (pairedDevices.length < 1) {
-      scan();
-    }
-  }, [deviceAlreadPaired, pairedDevices.length, scan]);
+    // if (pairedDevices.length < 1) {
+    scan();
+    // }
+  }, [scan]);
 
   const onPressPairedDeviceBluetooth = useCallback(
     (nameDevice, adress) => {
