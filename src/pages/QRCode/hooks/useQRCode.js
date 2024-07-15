@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import {
   DeviceEventEmitter,
@@ -11,6 +12,7 @@ import {
   BluetoothEscposPrinter,
   BluetoothManager,
 } from 'react-native-bluetooth-escpos-printer';
+import {useDecrypt, useEncrypt} from '../../../utils/CryptoEncryptDecrypt';
 
 export const useQRCode = () => {
   const [pairedDevices, setPairedDevices] = useState([]);
@@ -203,6 +205,14 @@ export const useQRCode = () => {
     );
   }, [foundDs]);
 
+  const handleEncryptDecrypt = exampleDataPrint => {
+    const encryptedData = useEncrypt(exampleDataPrint);
+    console.log('Encrypted:', encryptedData);
+
+    const decryptedData = useDecrypt(encryptedData);
+    console.log('Decrypted:', decryptedData);
+  };
+
   const printPerform = async () => {
     setIsLoadingPrint(true);
 
@@ -218,20 +228,20 @@ export const useQRCode = () => {
       sampleNo: '1',
       palmNo: '1',
       timeStamp: '2024-07-15 21:00:53',
-      qrCode:
-        'T4zA5BTT3qtssiV1XYwbIkbs8Y/lzbkeH6RkPpHVakWP+7fcy92Qx03k83a1itJFswcbwqosdNzyOqtUjfSydJXgSB3+MNMy2hM2HZPDylQxd1Es5T7BYhBgCa9uX+qRZKRBAP8uqClkn3rqWdHbXVqFzek/igmERdYAEqXuQgymOqFSPFciNFm+bvhTs7895a4uoSjmbqNu0s6MAEllNQnTRYh8mMIS34NCtBUtrfqQdHgDn6coSCpigK2NQnnLfjn/liJil6R3n3hRviEfhw==',
-      refId: 'T4zA5BTT3q',
+      qrCode: 'T4zA5BTT3qt',
     };
 
-    PrintManager.performPrint(JSON.stringify(exampleDataPrint))
-      .then(() => {
-        setIsLoadingPrint(false);
+    handleEncryptDecrypt(exampleDataPrint);
 
-        Alert.alert('Sukses', 'Berhasil Melakukan Print');
-      })
-      .catch(() => {
-        setIsLoadingPrint(false);
-      });
+    // PrintManager.performPrint(JSON.stringify(exampleDataPrint))
+    //   .then(() => {
+    //     setIsLoadingPrint(false);
+
+    //     Alert.alert('Sukses', 'Berhasil Melakukan Print');
+    //   })
+    //   .catch(() => {
+    //     setIsLoadingPrint(false);
+    //   });
   };
 
   const printPaper = async () => {
