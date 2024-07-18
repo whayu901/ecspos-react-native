@@ -205,14 +205,6 @@ export const useQRCode = () => {
     );
   }, [foundDs]);
 
-  const handleEncryptDecrypt = exampleDataPrint => {
-    const encryptedData = useEncrypt(exampleDataPrint);
-    console.log('Encrypted:', encryptedData);
-
-    const decryptedData = useDecrypt(encryptedData);
-    console.log('Decrypted:', decryptedData);
-  };
-
   const printPerform = async () => {
     setIsLoadingPrint(true);
 
@@ -225,23 +217,42 @@ export const useQRCode = () => {
       palm: 'Pokok 1',
       block: 'A14a',
       plot: '1-2460',
-      sampleNo: '1',
-      palmNo: '1',
-      timeStamp: '2024-07-15 21:00:53',
-      qrCode: 'T4zA5BTT3qt',
+      sample: '1',
+      pokok: '1',
+      refId: '3928923',
+      typeFruit: 'Partherno',
     };
 
-    handleEncryptDecrypt(exampleDataPrint);
+    const dataPrint = {
+      ...exampleDataPrint,
+      qrCode: JSON.stringify(exampleDataPrint),
+    };
 
-    // PrintManager.performPrint(JSON.stringify(exampleDataPrint))
-    //   .then(() => {
-    //     setIsLoadingPrint(false);
+    console.log({dataPrint});
 
-    //     Alert.alert('Sukses', 'Berhasil Melakukan Print');
-    //   })
-    //   .catch(() => {
-    //     setIsLoadingPrint(false);
-    //   });
+    // try {
+    //   const encryptedData = useEncrypt(exampleDataPrint);
+    //   console.log('Encrypted:', encryptedData);
+
+    //   const decryptedData = useDecrypt(encryptedData);
+    //   console.log('Decrypted:', decryptedData);
+    //   // console.log(JSON.stringify(decryptedData, null, 2));
+    // } catch (error) {
+    //   console.error('Error during encryption/decryption:', error);
+    //   console.log('Encryption/Decryption failed.');
+    // }
+
+    // handleEncryptDecrypt(exampleDataPrint);
+
+    PrintManager.performPrint(JSON.stringify(dataPrint))
+      .then(() => {
+        setIsLoadingPrint(false);
+
+        Alert.alert('Sukses', 'Berhasil Melakukan Print');
+      })
+      .catch(() => {
+        setIsLoadingPrint(false);
+      });
   };
 
   const printPaper = async () => {
