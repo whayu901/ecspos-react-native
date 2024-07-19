@@ -79,34 +79,6 @@
                         <key>LWTextAlignment</key>
                         <string>LWTextAlignmentLeft</string>
                     </dict>
-                    
-                    
-                    <dict>
-                        <key>LWContentType</key>
-                        <string>LWContentTypeString</string>
-                        <key>LWContentID</key>
-                        <string>ST-5</string>
-                        <key>LWContentWidth</key>
-                        <integer>50</integer>
-                        <key>LWContentHeight</key>
-                        <integer>20</integer>
-                        
-                        <key>LWTextAlignment</key>
-                        <string>LWTextAlignmentLeft</string>
-                    </dict>
-                    <dict>
-                        <key>LWContentType</key>
-                        <string>LWContentTypeString</string>
-                        <key>LWContentID</key>
-                        <string>ST-6</string>
-                        <key>LWContentWidth</key>
-                        <integer>50</integer>
-                        <key>LWContentHeight</key>
-                        <integer>20</integer>
-                        
-                        <key>LWTextAlignment</key>
-                        <string>LWTextAlignmentLeft</string>
-                    </dict>
                 </array>
             </dict>
         </array>

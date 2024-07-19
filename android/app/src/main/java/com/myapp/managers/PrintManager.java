@@ -350,26 +350,22 @@ public class PrintManager extends ReactContextBaseJavaModule {
                 for (ContentsData data : _contentsData) {
                     HashMap<String, String> elementMap = data.getElementMap();
                     if (elementMap.containsKey("ST-1")) {
-                        elementMap.put("ST-1", jsonObject.optString("refId"));
+                        String mergedString = jsonObject.optString("trial") + "_" + jsonObject.optString("plot") + "_" + jsonObject.optString("pokok");
+                        elementMap.put("ST-1", mergedString);
                     }
 
                     if (elementMap.containsKey("ST-2")) {
-                        String mergedString = jsonObject.optString("trial") + "_" + jsonObject.optString("plot") + "_" + jsonObject.optString("pokok");
+                        String mergedString = jsonObject.optString("pokok") + "_" + jsonObject.optString("plot") + "_" + jsonObject.optString("block");
                         elementMap.put("ST-2", mergedString);
                     }
 
+
                     if (elementMap.containsKey("ST-3")) {
-                        elementMap.put("ST-3", jsonObject.optString("block"));
+                        String mergedString = jsonObject.optString("sample") +"_" + jsonObject.optString("typeFruit");
+                        elementMap.put("ST-3", mergedString);
                     }
 
-
-                    if (elementMap.containsKey("ST-5")) {
-                        elementMap.put("ST-5", jsonObject.optString("sample"));
-                    }
-
-                    if (elementMap.containsKey("ST-6")) {
-                        elementMap.put("ST-6", jsonObject.optString("typeFruit"));
-                    }
+                   
 
                     if (elementMap.containsKey("QR-1")) {
                         elementMap.put("QR-1", jsonObject.optString("qrCode"));
