@@ -12,17 +12,13 @@
         <integer>100</integer>
         <key>LWFrameSizeMode</key>
         <string>LWFrameSizeModePercent</string>
-        <key>LWMargins</key>
-        <string>LWMarginsNumberMM</string>
-        <key>LWMarginsValue</key>
-        <integer>3</integer>
         <key>LWFrames</key>
         <array>
             <dict>
                 <key>LWContentType</key>
                 <string>LWContentTypeQRCode</string>
                 <key>LWContentWidth</key>
-                <integer>20</integer>
+                <integer>30</integer>
                 <key>LWContentHeight</key>
                 <integer>100</integer>
                 <key>LWContentID</key>
@@ -34,7 +30,7 @@
                 <key>LWContentType</key>
                 <string>LWContentTypeFrame</string>
                 <key>LWContentWidth</key>
-                <integer>50</integer>
+                <integer>60</integer>
                 <key>LWContentHeight</key>
                 <integer>100</integer>
                 <key>LWLayoutDirection</key>
@@ -47,9 +43,9 @@
                         <key>LWContentID</key>
                         <string>ST-1</string>
                         <key>LWContentWidth</key>
-                        <integer>50</integer>
+                        <integer>60</integer>
                         <key>LWContentHeight</key>
-                        <integer>20</integer>
+                        <integer>30</integer>
                         <key>LWTextAlignment</key>
                         <string>LWTextAlignmentLeft</string>
                     </dict>
@@ -59,9 +55,9 @@
                         <key>LWContentID</key>
                         <string>ST-2</string>
                         <key>LWContentWidth</key>
-                        <integer>50</integer>
+                        <integer>60</integer>
                         <key>LWContentHeight</key>
-                        <integer>20</integer>
+                        <integer>30</integer>
                         
                         <key>LWTextAlignment</key>
                         <string>LWTextAlignmentLeft</string>
@@ -72,9 +68,9 @@
                         <key>LWContentID</key>
                         <string>ST-3</string>
                         <key>LWContentWidth</key>
-                        <integer>50</integer>
+                        <integer>60</integer>
                         <key>LWContentHeight</key>
-                        <integer>20</integer>
+                        <integer>30</integer>
                         
                         <key>LWTextAlignment</key>
                         <string>LWTextAlignmentLeft</string>

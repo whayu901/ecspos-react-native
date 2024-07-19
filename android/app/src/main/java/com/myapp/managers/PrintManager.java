@@ -350,20 +350,32 @@ public class PrintManager extends ReactContextBaseJavaModule {
                 for (ContentsData data : _contentsData) {
                     HashMap<String, String> elementMap = data.getElementMap();
                     if (elementMap.containsKey("ST-1")) {
-                        String mergedString = jsonObject.optString("trial") + "_" + jsonObject.optString("plot") + "_" + jsonObject.optString("pokok");
+                        String mergedString = jsonObject.optString("trial");
                         elementMap.put("ST-1", mergedString);
                     }
 
                     if (elementMap.containsKey("ST-2")) {
-                        String mergedString = jsonObject.optString("pokok") + "_" + jsonObject.optString("plot") + "_" + jsonObject.optString("block");
+                        String mergedString = jsonObject.optString("block") + "_" + jsonObject.optString("plot") + "_" + jsonObject.optString("pokok");
                         elementMap.put("ST-2", mergedString);
                     }
 
 
                     if (elementMap.containsKey("ST-3")) {
-                        String mergedString = jsonObject.optString("sample") +"_" + jsonObject.optString("typeFruit");
+                        String sample = jsonObject.optString("sample");
+                        String typeFruit = jsonObject.optString("typeFruit");
+                        
+                        String mergedString;
+                        if ("Partheno".equals(typeFruit)) {
+                            // If typeFruit is "partheno", use only the sample
+                            mergedString = sample + "_" + typeFruit;
+                        } else {
+                            // Otherwise, concatenate sample, "_", and typeFruit
+                            mergedString = sample;
+                        }
+                        
                         elementMap.put("ST-3", mergedString);
                     }
+
 
                    
 

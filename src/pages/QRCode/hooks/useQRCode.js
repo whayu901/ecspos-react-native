@@ -220,7 +220,7 @@ export const useQRCode = () => {
       sample: '1',
       pokok: '1',
       refId: '3928923',
-      typeFruit: 'Partherno',
+      typeFruit: 'Fertile',
     };
 
     const dataPrint = {
