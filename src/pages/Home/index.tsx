@@ -66,6 +66,19 @@ function App(): React.JSX.Element {
             <Text style={{color: 'black'}}>Check Permission Nearby</Text>
             <Text style={{color: 'black'}}>{'>'}</Text>
           </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Camera')}
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              borderBottomColor: 'grey',
+              borderBottomWidth: 0.5,
+              paddingBottom: 10,
+              marginTop: 15,
+            }}>
+            <Text style={{color: 'black'}}>Check Camera</Text>
+            <Text style={{color: 'black'}}>{'>'}</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>

@@ -68,6 +68,8 @@ def enableProguardInReleaseBuilds = false
  * this variant is about 6MiB larger per architecture than default.
  */
 def jscFlavor = 'org.webkit:android-jsc:+'
+def enableFlipper = false
+
 
 android {
     ndkVersion rootProject.ext.ndkVersion
@@ -82,7 +84,16 @@ android {
         versionCode 1
         versionName "1.0"
         ndkVersion "25.2.9519653"
+        ndk {
+            abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64"  // Include only supported ABIs
+        }
     }
+
+     packagingOptions {
+        exclude "**/libimage_processing_util_jni.so"  // Exclude the problematic JNI file
+        exclude "**/riscv64/**"  // Explicitly exclude the riscv64 folder
+    }
+    
     signingConfigs {
         debug {
             storeFile file('debug.keystore')
