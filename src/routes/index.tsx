@@ -6,7 +6,8 @@ import NFCPage from '../pages/NFC';
 import HomePage from '../pages/Home';
 import QRCodePage from '../pages/QRCode';
 import PermissionNearby from '../pages/permissionNearby';
-import Camera from '../pages/Camera';
+// import Camera from '../pages/Camera';
+import BleScreen from '../pages/BleScan';
 
 const RoutePages = () => {
   const Stack = createNativeStackNavigator();
@@ -18,7 +19,8 @@ const RoutePages = () => {
         <Stack.Screen name="NFC" component={NFCPage} />
         <Stack.Screen name="QRCode" component={QRCodePage} />
         <Stack.Screen name="PermissionNearby" component={PermissionNearby} />
-        <Stack.Screen name="Camera" component={Camera} />
+        {/* <Stack.Screen name="Camera" component={Camera} /> */}
+        <Stack.Screen name="BleScreen" component={BleScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

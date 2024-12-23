@@ -41,6 +41,19 @@ function App(): React.JSX.Element {
             <Text style={{color: 'black'}}>{'>'}</Text>
           </TouchableOpacity>
           <TouchableOpacity
+            onPress={() => navigation.navigate('BleScreen')}
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              borderBottomColor: 'grey',
+              borderBottomWidth: 0.5,
+              paddingBottom: 10,
+              marginTop: 15,
+            }}>
+            <Text style={{color: 'black'}}>Bluetooth Low Energy</Text>
+            <Text style={{color: 'black'}}>{'>'}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
             onPress={() => navigation.navigate('NFC')}
             style={{
               flexDirection: 'row',
@@ -66,7 +79,7 @@ function App(): React.JSX.Element {
             <Text style={{color: 'black'}}>Check Permission Nearby</Text>
             <Text style={{color: 'black'}}>{'>'}</Text>
           </TouchableOpacity>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             onPress={() => navigation.navigate('Camera')}
             style={{
               flexDirection: 'row',
@@ -78,7 +91,7 @@ function App(): React.JSX.Element {
             }}>
             <Text style={{color: 'black'}}>Check Camera</Text>
             <Text style={{color: 'black'}}>{'>'}</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </ScrollView>
     </SafeAreaView>
