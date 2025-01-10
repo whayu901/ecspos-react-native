@@ -1,4 +1,5 @@
-import React, {useEffect, useState, useRef} from 'react';
+/* eslint-disable react-native/no-inline-styles */
+import React, {useEffect, useState, useRef, useCallback} from 'react';
 import {View, Text, Button, FlatList, TouchableOpacity} from 'react-native';
 import BluetoothService from './BluetoothService'; // Adjust the import path as necessary
 
@@ -6,6 +7,7 @@ const BluetoothManager = () => {
   const [devices, setDevices] = useState([]);
   const [isScanning, setIsScanning] = useState(false);
   const [connectedDevice, setConnectedDevice] = useState(null);
+  const [selectedDevice, setSelectedDevice] = useState('');
   const bluetoothServiceRef = useRef(new BluetoothService());
 
   const discoveredDevices = new Map();
@@ -14,9 +16,9 @@ const BluetoothManager = () => {
     const bluetoothService = bluetoothServiceRef.current;
 
     return () => {
-      bluetoothService.disconnect(); // Clean up on component unmount
+      disconnectDevice();
     };
-  }, []);
+  }, [disconnectDevice]);
 
   const startScan = async () => {
     setIsScanning(true);
@@ -44,11 +46,6 @@ const BluetoothManager = () => {
       console.error('Error during scan:', error);
       setIsScanning(false);
     }
-
-    // // Optionally stop scanning after a certain time
-    // setTimeout(() => {
-    //   stopScan();
-    // }, 10000); // Scans for 10 seconds
   };
 
   const stopScan = async () => {
@@ -66,6 +63,8 @@ const BluetoothManager = () => {
   const connectToDevice = async deviceName => {
     const bluetoothService = bluetoothServiceRef.current;
 
+    setSelectedDevice(deviceName);
+
     try {
       const device = await bluetoothService.connect(deviceName);
       console.log({device});
@@ -77,17 +76,17 @@ const BluetoothManager = () => {
     }
   };
 
-  const disconnectDevice = async () => {
+  const disconnectDevice = useCallback(async () => {
     const bluetoothService = bluetoothServiceRef.current;
 
     try {
-      await bluetoothService.disconnect();
+      await bluetoothService.disconnect(selectedDevice);
       setConnectedDevice(null);
       console.log('Device disconnected');
     } catch (error) {
       console.error('Error disconnecting device:', error);
     }
-  };
+  }, [selectedDevice]);
 
   const collectData = async () => {
     const bluetoothService = bluetoothServiceRef.current;
@@ -97,7 +96,13 @@ const BluetoothManager = () => {
     } catch (error) {}
   };
 
-  const collectDataTemp = async () => {};
+  const collectDataTemp = async () => {
+    const bluetoothService = bluetoothServiceRef.current;
+
+    try {
+      await bluetoothService.collectTmpData();
+    } catch (error) {}
+  };
 
   return (
     <View style={{padding: 20}}>
@@ -111,6 +116,9 @@ const BluetoothManager = () => {
       </View>
       <View style={{marginTop: 20}}>
         <Button title="Collect Data" onPress={collectData} />
+      </View>
+      <View style={{marginTop: 20}}>
+        <Button title="Collect Data Temp" onPress={collectDataTemp} />
       </View>
 
       {connectedDevice !== null && (

@@ -1,3 +1,4 @@
+/* eslint-disable no-bitwise */
 import {BleManager} from 'react-native-ble-plx';
 import {Buffer} from 'buffer';
 
@@ -157,7 +158,9 @@ class BluetoothService {
         const connectedDevice = await device.connect();
         return connectedDevice;
       } catch (error) {
-        if (i === retries - 1) throw error; // Throw error if retries are exhausted
+        if (i === retries - 1) {
+          throw error;
+        } // Throw error if retries are exhausted
         console.warn(`Retrying connection (${i + 1}/${retries})...`);
         await new Promise(resolve => setTimeout(resolve, 1000)); // Wait before retrying
       }
@@ -243,16 +246,25 @@ class BluetoothService {
     return this.sendData(0x01, data);
   }
 
-  disconnect() {
-    if (!this.connectedDevice) return Promise.resolve('Already disconnected.');
+  async disconnect(deviceName) {
+    try {
+      // Retrieve all connected devices for the service UUID
+      const connectedDevices = await this.manager.connectedDevices([serviceId]);
 
-    return this.connectedDevice.cancelConnection().then(() => {
-      this.connectedDevice = null;
-      this.writeCharacteristic = null;
-      this.readCharacteristic = null;
-      this.isSubscribed = false;
-      console.log('Device disconnected');
-    });
+      // Find the device with the specified name
+      const device = connectedDevices.find(d => d.name === deviceName);
+
+      if (!device) {
+        throw new Error(`Device with name "${deviceName}" is not connected.`);
+      }
+
+      // Disconnect the specific device
+      await device.cancelConnection();
+      console.log(`Disconnected from device: ${deviceName}`);
+    } catch (error) {
+      console.error(`Error disconnecting from device: ${error.message}`);
+      throw error;
+    }
   }
 
   subscribeToData() {
@@ -347,7 +359,9 @@ class BluetoothService {
         });
 
         this.sendData(0x05, this.resciveData);
-        if (this.percentage < 100) return;
+        if (this.percentage < 100) {
+          return;
+        }
         this._processWaveData();
         break;
       }
