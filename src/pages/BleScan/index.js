@@ -3,6 +3,8 @@ import React, {useEffect, useState, useRef, useCallback} from 'react';
 import {View, Text, Button, FlatList, TouchableOpacity} from 'react-native';
 import BluetoothService from './BluetoothService'; // Adjust the import path as necessary
 
+import useBLE from './useBLE';
+
 const BluetoothManager = () => {
   const [devices, setDevices] = useState([]);
   const [isScanning, setIsScanning] = useState(false);
@@ -10,15 +12,15 @@ const BluetoothManager = () => {
   const [selectedDevice, setSelectedDevice] = useState('');
   const bluetoothServiceRef = useRef(new BluetoothService());
 
+  const {connectToDevice} = useBLE();
+
   const discoveredDevices = new Map();
 
-  useEffect(() => {
-    const bluetoothService = bluetoothServiceRef.current;
-
-    return () => {
-      disconnectDevice();
-    };
-  }, [disconnectDevice]);
+  // useEffect(() => {
+  //   return () => {
+  //     disconnectDevice();
+  //   };
+  // }, [disconnectDevice]);
 
   const startScan = async () => {
     setIsScanning(true);
@@ -60,19 +62,20 @@ const BluetoothManager = () => {
     }
   };
 
-  const connectToDevice = async deviceName => {
+  const connectToDevices = async deviceName => {
     const bluetoothService = bluetoothServiceRef.current;
 
     setSelectedDevice(deviceName);
 
     try {
-      const device = await bluetoothService.connect(deviceName);
-      console.log({device});
+      // await bluetoothService.connectToDevice(deviceName);
+      await connectToDevice(deviceName);
+      // console.log({device});
 
-      console.log(`Connected to device: ${device.name}`);
-      setConnectedDevice(device);
+      // console.log(`Connected to device: ${device.name}`);
+      // setConnectedDevice(device);
     } catch (error) {
-      console.error('Error connecting to device:', error);
+      // console.error('Error connecting to device:', error);
     }
   };
 
@@ -80,9 +83,7 @@ const BluetoothManager = () => {
     const bluetoothService = bluetoothServiceRef.current;
 
     try {
-      await bluetoothService.disconnect(selectedDevice);
-      setConnectedDevice(null);
-      console.log('Device disconnected');
+      await bluetoothService.disconnectFromDevice(selectedDevice);
     } catch (error) {
       console.error('Error disconnecting device:', error);
     }
@@ -133,7 +134,7 @@ const BluetoothManager = () => {
         data={devices}
         keyExtractor={item => item.id}
         renderItem={({item}) => (
-          <TouchableOpacity onPress={() => connectToDevice(item.name)}>
+          <TouchableOpacity onPress={() => connectToDevices(item.id)}>
             <Text style={{padding: 10}}>
               {item.name || 'Unnamed Device'} ({item.id})
             </Text>

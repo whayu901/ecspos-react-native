@@ -1,10 +1,14 @@
 /* eslint-disable no-bitwise */
 import {BleManager} from 'react-native-ble-plx';
 import {Buffer} from 'buffer';
+import {Alert} from 'react-native';
 
 const serviceId = 'b7ef1193-dc2e-4362-93d3-df429eb3ad10'; //service uuid
 const cmdCharacId = '00ce7a72-ec08-473d-943e-81ec27fdc600'; //write uuid
 const dataCharacId = '00ce7a72-ec08-473d-943e-81ec27fdc5f2';
+// const serviceId = 'b7ef1193dc2e436293d3df429eb3ad10'; //service uuid
+// const cmdCharacId = '00ce7a72ec08473d943e81ec27fdc600'; //write uuid
+// const dataCharacId = '00ce7a72ec08473d943e81ec27fdc5f2';
 
 // Helper functions
 const intToBytes = value => [
@@ -30,11 +34,170 @@ class BluetoothService {
     this.connectedDevice = null;
     this.writeCharacteristic = null;
     this.readCharacteristic = null;
-    this.isScanning = false;
-    this.isConnecting = false;
     this.isSubscribed = false;
     this.dataSubscription = null;
+    this.resciveData = [];
+    for (let i = 0; i < 242; i++) {
+      this.resciveData.push(0);
+    }
+    this.statu = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80];
+    this.waveDataT = {};
+    this.percentage = 0;
+    this.isScanning = false;
+    this.isConnecting = false;
   }
+
+  connectToDevice = async deviceId => {
+    try {
+      const connectedDevices = await this.manager.connectedDevices([serviceId]);
+      const alreadyConnected = connectedDevices.some(
+        device => device.id === deviceId,
+      );
+
+      if (alreadyConnected) {
+        Alert.alert(
+          'Device already connected',
+          `Device ${deviceId} is already connected.`,
+        );
+        return;
+      }
+
+      const device = await this.manager.connectToDevice(deviceId);
+      await device.discoverAllServicesAndCharacteristics();
+      const services = await device.services();
+      // console.log({services});
+
+      const service = services.find(s => s.uuid === serviceId);
+      const characteristics = await service.characteristics();
+
+      const cmdCharacteristic = characteristics.find(
+        c => c.uuid === cmdCharacId,
+      );
+      const dataCharacteristic = characteristics.find(
+        c => c.uuid === dataCharacId,
+      );
+
+      // console.log({dataCharacteristic});
+      // this.manager
+      //   .readCharacteristicForDevice(deviceId, serviceId, dataCharacId)
+      //   .then(data => {
+      //     console.log('data');
+      //   })
+      //   .catch(err => {
+      //     console.error(err);
+      //   });
+
+      device.monitorCharacteristicForService(
+        serviceId,
+        dataCharacId,
+        (error, data) => {
+          try {
+            if (error) {
+              Alert.alert('tidak berhasil');
+              return;
+            }
+            console.log('my Data', data);
+          } catch (e) {
+            console.error(e);
+          }
+
+          // console.log('error char', error);
+        },
+      );
+
+      // console.log('Connected to device:', device.id);
+
+      // const services = await device.services();
+
+      // const service = services.find(s => s.uuid === serviceId);
+
+      // if (!service) {
+      //   Alert.alert(
+      //     'Service Not Found',
+      //     'The specified service does not exist on this device.',
+      //   );
+      //   await this.disconnectFromDevice(deviceId);
+      //   return;
+      // }
+
+      // this.writeCharacteristic = cmdCharacteristic;
+      // this.readCharacteristic = characteristics;
+
+      // if (cmdCharacteristic && dataCharacteristic) {
+      //   console.log('Service and characteristics found!');
+      //   // Perform some function with the characteristics
+      //   this.performActionWithCharacteristic(
+      //     cmdCharacteristic,
+      //     dataCharacteristic,
+      //   );
+      // } else {
+      //   Alert.alert(
+      //     'Characteristics Not Found',
+      //     'The required characteristics were not found on this device.',
+      //   );
+      // }
+    } catch (error) {
+      console.error('Error connecting to device:', error);
+      Alert.alert(
+        'Connection Error',
+        error.message || 'Unable to connect to the device.',
+      );
+    }
+  };
+
+  disconnectFromDevice = async deviceId => {
+    try {
+      const device = await this.manager.devices([deviceId]);
+      if (device) {
+        await this.manager.cancelDeviceConnection(deviceId);
+        console.log('Disconnected from device:', deviceId);
+        Alert.alert('Disconnected', `Disconnected from device ${deviceId}`);
+      } else {
+        Alert.alert(
+          'Device Not Found',
+          'No connected device found with this ID.',
+        );
+      }
+    } catch (error) {
+      console.error('Error disconnecting from device:', error);
+      Alert.alert(
+        'Disconnection Error',
+        error.message || 'Unable to disconnect from the device.',
+      );
+    }
+  };
+
+  performActionWithCharacteristic = async (
+    cmdCharacteristic,
+    dataCharacteristic,
+  ) => {
+    // console.log('Write Characteristic:', cmdCharacteristic.uuid);
+    // console.log('Read Characteristic:', dataCharacteristic.uuid);
+    // console.log('Read Characteristic data:', dataCharacteristic);
+
+    if (!dataCharacteristic.isNotifiable) {
+      console.error('This characteristic is not notifiable.');
+      return;
+    } else {
+      console.log('is notifibale');
+    }
+
+    // Start monitoring the data characteristic
+    console.log('Monitoring characteristic:', dataCharacteristic.value);
+
+    // dataCharacteristic.monitor((error, data) => {
+    //   console.log({data});
+    // });
+
+    // const base64Value = dataCharacteristic?.value;
+    // if (base64Value) {
+    //   const data = Buffer.from(base64Value, 'base64');
+    //   console.log('Data received:', Array.from(data));
+    //   this.handleData(Array.from(data)); // Custom data handling
+    // } else {
+    //   console.log('No data received.');
+    // }
+  };
 
   startScan() {
     if (this.isScanning) {
@@ -100,6 +263,8 @@ class BluetoothService {
 
             // Discover services and characteristics
             const services = await this.connectedDevice.services();
+
+            console.log({services});
             const service = services.find(s => s.uuid === serviceId);
 
             if (!service) {
@@ -173,7 +338,7 @@ class BluetoothService {
     const now = new Date();
     // Format time
     const formatted = now.toISOString().slice(0, 19).replace(/[-T:]/g, ''); // YYYYMMDDHHMMSS
-    console.log(now);
+
     const startCollect = {
       systemTime: {
         Y: formatted.substring(0, 2),
@@ -238,9 +403,6 @@ class BluetoothService {
     data.push(...intToBytes(startCollect.indIntv));
     data.push(startCollect.sampleDir);
 
-    // if (val == 2)
-    // {
-
     console.log(val, ' ', JSON.stringify(data));
     // }
     return this.sendData(0x01, data);
@@ -295,10 +457,6 @@ class BluetoothService {
   }
 
   sendData(cmd, data) {
-    if (!this.writeCharacteristic) {
-      return Promise.reject(new Error('No write characteristic available.'));
-    }
-
     const nowSendData = [0xaa, cmd, data.length + 4, ...data];
     let cs = nowSendData.reduce((sum, p) => (sum + p) % 256, 0);
     cs = 256 - cs;
@@ -306,7 +464,7 @@ class BluetoothService {
     const finalData = [...nowSendData, cs];
     const buffer = Buffer.from(finalData);
 
-    console.log({buffer});
+    console.log({data});
 
     return this.writeCharacteristic.writeWithResponse(
       buffer.toString('base64'),
@@ -314,7 +472,7 @@ class BluetoothService {
   }
 
   handleData(data) {
-    console.log('Data received:', data);
+    console.log('Data received:', data[1]);
     // Add handling logic here as per your application needs
 
     let allVal = 0;
@@ -358,6 +516,8 @@ class BluetoothService {
             this.resciveData[Math.floor(p.index / 8)] | this.statu[p.index % 8];
         });
 
+        console.log('wahyu');
+
         this.sendData(0x05, this.resciveData);
         if (this.percentage < 100) {
           return;
@@ -378,7 +538,8 @@ class BluetoothService {
     for (let i = 0; i < 242; i++) {
       this.resciveData.push(0);
     }
-    return this._collecData(0, 1, 8, 1563);
+
+    return this._collecData(0, 1, 8, 3125);
   }
 
   collectIndexData() {
