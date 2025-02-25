@@ -6,7 +6,7 @@
  * @format
  */
 
-import React from 'react';
+import React, {useCallback, useState} from 'react';
 
 import {
   SafeAreaView,
@@ -17,15 +17,33 @@ import {
   useColorScheme,
   View,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
   const navigation: any = useNavigation();
+  const route: any = useRoute();
+
+  const [data, setData] = useState('Initial Data');
+
+  // Handle data when coming back from Screen B
+  useFocusEffect(
+    useCallback(() => {
+      if (route.params?.updatedData) {
+        // setData(route.params.updatedData);
+        console.log('my data', route.params?.updatedData);
+      }
+    }, [route.params?.updatedData]),
+  );
 
   return (
     <SafeAreaView>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
       <ScrollView contentInsetAdjustmentBehavior="automatic">
+        <Text>{data}</Text>
         <View style={{marginHorizontal: 15}}>
           <TouchableOpacity
             onPress={() => navigation.navigate('QRCode')}
@@ -67,7 +85,11 @@ function App(): React.JSX.Element {
             <Text style={{color: 'black'}}>{'>'}</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => navigation.navigate('PermissionNearby')}
+            onPress={() =>
+              navigation.navigate('PermissionNearby', {
+                onGoBack: (newData: any) => setData(newData), // Callback function
+              })
+            }
             style={{
               flexDirection: 'row',
               justifyContent: 'space-between',

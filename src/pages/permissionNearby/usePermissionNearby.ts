@@ -1,6 +1,26 @@
+import {useNavigation, useRoute} from '@react-navigation/native';
+import {useEffect, useState} from 'react';
 import {PermissionsAndroid} from 'react-native';
 
 export const usePermissionNearby = () => {
+  const route: any = useRoute();
+  const navigation: any = useNavigation();
+
+  const {data} = route?.params || {};
+
+  const [input] = useState('wahyu');
+
+  useEffect(() => {
+    console.log({data});
+  }, [data]);
+
+  const onGoback = () => {
+    if (route.params?.onGoBack) {
+      route.params.onGoBack(input); // Pass the data back
+    }
+    navigation.goBack(); // Navigate back to Screen A
+  };
+
   const requestBluetoothPermission = async () => {
     try {
       const granted = await PermissionsAndroid.requestMultiple([
@@ -26,5 +46,6 @@ export const usePermissionNearby = () => {
 
   return {
     requestBluetoothPermission,
+    onGoback,
   };
 };

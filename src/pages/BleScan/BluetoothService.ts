@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-bitwise */
-import {useCallback, useEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
 import {Alert, PermissionsAndroid, ToastAndroid} from 'react-native';
 import {
   BleError,
@@ -12,7 +12,6 @@ import DeviceInfo from 'react-native-device-info';
 import {PERMISSIONS} from 'react-native-permissions';
 import {Buffer} from 'buffer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 
 type PermissionCallback = (result: boolean) => void;
 
@@ -46,19 +45,13 @@ export default function useBle() {
   const [isBack, setIsBack] = useState(false);
   const [collectValue, setCollectValue] = useState('');
   const [isPaused, setIsPaused] = useState(false);
-  const [idDevice, setIdDevice] = useState<any>('');
 
-  const isFocused = useIsFocused();
   const reconnectToSavedDevice = async () => {
     try {
       // Retrieve the saved device ID from AsyncStorage
       const savedDeviceId = await AsyncStorage.getItem(
         'my-connected-device-id',
       );
-
-      setIdDevice(savedDeviceId);
-
-      console.log({savedDeviceId});
 
       if (savedDeviceId) {
         // Use the saved device ID to reconnect
@@ -102,35 +95,10 @@ export default function useBle() {
   };
 
   // useEffect(() => {
-  //   scanForDevices();
-
   //   return () => {
   //     disconnectDevice(connectedDevice?.id);
-  //     // stopCollectTmpData();
   //   };
   // }, [connectedDevice?.id]);
-
-  const stopCOllectDataAndDisconnected = useCallback(async () => {
-    if (idDevice) {
-      // await collectData(4, 0, 0, 1000);
-
-      disconnectDevice(idDevice);
-      console.log('my connected Device', idDevice);
-    }
-  }, [idDevice]);
-
-  useFocusEffect(
-    useCallback(() => {
-      if (connectedDevice == null) {
-        console.log('my love');
-        scanForDevices();
-      }
-
-      return () => {
-        stopCOllectDataAndDisconnected();
-      };
-    }, [idDevice]),
-  );
 
   const requestPermissions = async (callback: PermissionCallback) => {
     const apiLevel = await DeviceInfo.getApiLevel();
@@ -170,6 +138,7 @@ export default function useBle() {
     devices.findIndex(device => device?.id === nextDevice?.id) > -1;
 
   const scanForDevices = () => {
+    setIsScanningDevice(true);
     bleManager.startDeviceScan(null, null, (error, device) => {
       if (error) {
         setIsScanningDevice(false);
@@ -237,8 +206,6 @@ export default function useBle() {
     try {
       const connectedDevices = await bleManager.connectedDevices([SERVICE_ID]);
 
-      console.log(JSON.stringify(connectedDevices));
-
       const device = connectedDevices.find((dev: any) => dev.id === deviceId);
 
       if (device) {
@@ -246,7 +213,7 @@ export default function useBle() {
         setIsSubscribed(false);
 
         await bleManager.cancelDeviceConnection(deviceId);
-        // await AsyncStorage.removeItem('my-connected-device-id');
+        await AsyncStorage.removeItem('my-connected-device-id');
 
         console.log('Device disconnected successfully');
       } else {
@@ -598,6 +565,11 @@ export default function useBle() {
 
   const resumeCollectData = async () => {
     setIsPaused(false);
+    // if (isBack) {
+    //   await collectData(1, 0, 0, 1000);
+    // } else {
+    //   await collectData(2, 0, 0, 3125);
+    // }
   };
 
   const collectVibrationData = async () => {
@@ -605,6 +577,12 @@ export default function useBle() {
 
     setMonitoredData(0);
     setReceivedData([]);
+
+    // if (isBack) {
+    //   await collectData(1, 0, 0, 1000);
+    // } else {
+    //   await collectData(2, 0, 0, 3125);
+    // }
   };
 
   return {
