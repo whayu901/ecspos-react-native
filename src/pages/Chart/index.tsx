@@ -114,9 +114,8 @@ const ThresholdChartWithStatus = () => {
                 color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
                 labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
                 style: {borderRadius: 16},
-                propsForDots: {r: '4', strokeWidth: '1', stroke: '#ffa726'},
+                propsForDots: {r: '4', strokeWidth: '', stroke: '#ffa726'},
               }}
-              bezier
               style={{marginVertical: 8, borderRadius: 16}}
             />
           </View>
