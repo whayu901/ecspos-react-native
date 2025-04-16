@@ -13,6 +13,7 @@ import com.facebook.react.flipper.ReactNativeFlipper
 import com.facebook.soloader.SoLoader
 import com.myapp.packages.DetailListPackage
 import com.myapp.packages.PrintPackage
+import com.myapp.packages.RootSecurityPackage
 
 class MainApplication : Application(), ReactApplication {
 
@@ -24,6 +25,7 @@ class MainApplication : Application(), ReactApplication {
               // add(MyReactNativePackage())
               add(DetailListPackage());
               add(PrintPackage())
+              add(RootSecurityPackage())
             }
 
         override fun getJSMainModuleName(): String = "index"

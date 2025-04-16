@@ -15,7 +15,7 @@ buildscript {
         url "https://jitpack.io"
         content {
             includeGroup "com.github.react-native-community"
-            includeModule "react-native-bluetooth-escpos-printer", "2.3.0"
+            // includeModule "react-native-bluetooth-escpos-printer", "2.3.0"
         }
     }
     }

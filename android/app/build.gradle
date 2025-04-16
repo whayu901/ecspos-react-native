@@ -120,8 +120,9 @@ dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
     implementation("com.facebook.react:flipper-integration")
-    implementation project(':react-native-bluetooth-escpos-printer')
+    // implementation project(':react-native-bluetooth-escpos-printer')
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation("com.scottyab:rootbeer-lib:0.1.1")
 
 
     if (hermesEnabled.toBoolean()) {

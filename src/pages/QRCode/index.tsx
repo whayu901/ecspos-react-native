@@ -17,7 +17,7 @@ const QRCode = () => {
     setShowModalList,
     pairedDevices,
     boundAddress,
-    onPressPairedDeviceBluetooth,
+    // onPressPairedDeviceBluetooth,
     DetailListManager,
     printPerform,
 
@@ -60,7 +60,7 @@ const QRCode = () => {
         onClose={() => setShowModalList(false)}
         data={pairedDevices}
         boundAddress={boundAddress}
-        onPress={(name, address) => onPressPairedDeviceBluetooth(name, address)}
+        onPress={() => null}
       />
     </View>
   );
