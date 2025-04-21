@@ -9,6 +9,7 @@ import PermissionNearby from '../pages/permissionNearby';
 // import Camera from '../pages/Camera';
 import BleScreen from '../pages/BleScan';
 import ChartScreen from '../pages/Chart';
+import ChartRealtimeScreen from '../pages/ChartRealtime';
 
 const RoutePages = () => {
   const Stack = createNativeStackNavigator();
@@ -23,6 +24,10 @@ const RoutePages = () => {
         {/* <Stack.Screen name="Camera" component={Camera} /> */}
         <Stack.Screen name="BleScreen" component={BleScreen} />
         <Stack.Screen name="ChartScreen" component={ChartScreen} />
+        <Stack.Screen
+          name="ChartRealtimeScreen"
+          component={ChartRealtimeScreen}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
