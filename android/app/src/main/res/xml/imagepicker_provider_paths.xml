@@ -1,0 +1,4 @@
+<!-- android/app/src/main/res/xml/imagepicker_provider_paths.xml -->
+<paths>
+    <cache-path name="images" path="images/" />
+</paths>

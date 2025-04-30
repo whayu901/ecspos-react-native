@@ -127,7 +127,7 @@ function App(): React.JSX.Element {
             <Text style={{color: 'black'}}>ChartRealtimeScreen</Text>
             <Text style={{color: 'black'}}>{'>'}</Text>
           </TouchableOpacity>
-          {/* <TouchableOpacity
+          <TouchableOpacity
             onPress={() => navigation.navigate('Camera')}
             style={{
               flexDirection: 'row',
@@ -139,7 +139,7 @@ function App(): React.JSX.Element {
             }}>
             <Text style={{color: 'black'}}>Check Camera</Text>
             <Text style={{color: 'black'}}>{'>'}</Text>
-          </TouchableOpacity> */}
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
