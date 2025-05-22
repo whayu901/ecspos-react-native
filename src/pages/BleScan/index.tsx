@@ -18,22 +18,30 @@ const HomeScreen = () => {
   const {
     requestPermissions,
     scanForDevices,
-    stopCollectTmpData,
+
     allDevices,
     isScanningDevice,
     connectToDevice,
     connectedDevice,
     monitoredData,
+
     collectVibrationData,
+    stopCollectTmpData,
     isDisableStopBtn,
     receivedData,
     disconnectDevice,
-    isBack,
-    setIsBack,
+
     collectValue,
     resumeCollectData,
     pauseCollectTempData,
     isPaused,
+    startTimer,
+    resumeTimer,
+    stopTimer,
+    formatTime,
+    runningTime,
+    pauseTimer,
+    MAX_TIME,
   } = useBle();
 
   const WIDTH = Dimensions.get('screen').width - 35;
@@ -49,13 +57,6 @@ const HomeScreen = () => {
   return (
     <>
       <View style={styles.container}>
-        <View>
-          <Text style={styles.title}>Available Device</Text>
-          <Button
-            title={isBack ? 'Untest' : 'TEst'}
-            onPress={() => setIsBack(!isBack)}
-          />
-        </View>
         {isScanningDevice && (
           <View style={styles.loaderContainer}>
             <ActivityIndicator size={'small'} />
@@ -97,64 +98,68 @@ const HomeScreen = () => {
           </View>
         )}
 
-        <View>
+        <View style={{marginBottom: 15}}>
           <Text style={{paddingVertical: 10}}>Realtime Value:</Text>
           <Text>{collectValue}</Text>
         </View>
 
-        {receivedData.length !== 0 && (
-          <>
-            <LineChart
-              width={WIDTH}
-              height={300}
-              withInnerLines={false}
-              data={{
-                labels: receivedData.map((_, index) => `${index + 1}`), // Dynamic labels per second
-                datasets: [
-                  {data: receivedData, color: () => 'blue', strokeWidth: 2},
-                ],
-              }}
-              chartConfig={{
-                backgroundColor: '#e26a00',
-                backgroundGradientFrom: '#fb8c00',
-                backgroundGradientTo: '#ffa726',
-                decimalPlaces: 1,
-                color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-                labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-                style: {
-                  borderRadius: 16,
-                },
-                propsForDots: {
-                  r: '6',
-                  strokeWidth: '2',
-                  stroke: '#ffa726',
-                },
+        {runningTime > 0 && (
+          <Text style={{fontSize: 32, marginBottom: 20}}>
+            {formatTime(runningTime)}
+          </Text>
+        )}
 
-                // Format y-axis labels to show temperature in °C
-                formatYLabel: value => `${value}°C`,
-              }}
-              bezier
-              yAxisLabel=""
-              yAxisSuffix="°C"
-              style={{
-                marginVertical: 8,
+        {receivedData.length !== 0 && (
+          <LineChart
+            width={WIDTH}
+            height={500}
+            withInnerLines={false}
+            data={{
+              labels: receivedData.map((_, index) => `${index + 1}`), // Dynamic labels per second
+              datasets: [
+                {data: receivedData, color: () => 'blue', strokeWidth: 2},
+              ],
+            }}
+            chartConfig={{
+              backgroundColor: '#e26a00',
+              backgroundGradientFrom: '#fb8c00',
+              backgroundGradientTo: '#ffa726',
+              decimalPlaces: 1,
+              color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+              labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+              style: {
                 borderRadius: 16,
-              }}
-            />
-            <Text
-              style={{
-                fontSize: 14,
-                fontWeight: 'bold',
-                color: 'white',
-                textAlign: 'center',
-                position: 'absolute',
-                bottom: -10,
-                right: 0,
-                transform: [{translateX: -40}],
-              }}>
-              Seconds
-            </Text>
-          </>
+              },
+              propsForDots: {
+                r: '6',
+                strokeWidth: '2',
+                stroke: '#ffa726',
+              },
+
+              // Format y-axis labels to show temperature in °C
+              formatYLabel: value => `${value}°C`,
+            }}
+            bezier
+            yAxisLabel=""
+            yAxisSuffix="°C"
+            style={{
+              marginVertical: 8,
+              borderRadius: 16,
+            }}
+          />
+          // <Text
+          //   style={{
+          //     fontSize: 14,
+          //     fontWeight: 'bold',
+          //     color: 'white',
+          //     textAlign: 'center',
+          //     position: 'absolute',
+          //     bottom: -10,
+          //     right: 0,
+          //     transform: [{translateX: -40}],
+          //   }}>
+          //   Seconds
+          // </Text>
         )}
       </View>
       <View style={styles.buttonContainer}>
@@ -168,6 +173,7 @@ const HomeScreen = () => {
           <View style={{flexDirection: 'row', marginTop: 10}}>
             <View style={{width: '100%'}}>
               <Button
+                disabled={runningTime < MAX_TIME}
                 title={isPaused ? 'Resume' : 'Pause'}
                 onPress={isPaused ? resumeCollectData : pauseCollectTempData}
                 color={isPaused ? 'green' : 'red'}

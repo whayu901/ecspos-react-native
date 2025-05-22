@@ -1,7 +1,13 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-bitwise */
-import {useCallback, useEffect, useState} from 'react';
-import {Alert, PermissionsAndroid, ToastAndroid} from 'react-native';
+import {useCallback, useEffect, useRef, useState} from 'react';
+import {
+  Alert,
+  BackHandler,
+  PermissionsAndroid,
+  ToastAndroid,
+} from 'react-native';
 import {
   BleError,
   BleManager,
@@ -21,6 +27,7 @@ const bleManager = new BleManager();
 const SERVICE_ID = 'b7ef1193-dc2e-4362-93d3-df429eb3ad10';
 const CMD_CHARAC_ID = '00ce7a72-ec08-473d-943e-81ec27fdc600';
 const DATA_CHARAC_ID = '00ce7a72-ec08-473d-943e-81ec27fdc5f2';
+const MAX_TIME = 1 * 60 * 1000; // 3 minutes in milliseconds
 
 interface BluetoothLowEnergyApi {
   requestPermissions(callback: PermissionCallback): Promise<void>;
@@ -47,6 +54,31 @@ export default function useBle() {
   const [collectValue, setCollectValue] = useState('');
   const [isPaused, setIsPaused] = useState(false);
   const [idDevice, setIdDevice] = useState<any>('');
+  const [waveDataT, setWaveDataT] = useState<any>({});
+  const [resciveData, setResciveData] = useState<any>([]);
+  const [percentage, setPercentage] = useState(0);
+
+  const statu = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80];
+
+  const [runningTime, setRunningTime] = useState<number>(0);
+  const [isRunning, setIsRunning] = useState<boolean>(false);
+  const [hasStarted, setHasStarted] = useState<boolean>(false);
+  const intervalRef = useRef<any>(null);
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        stopTimer();
+        return false;
+      },
+    );
+
+    return () => {
+      stopTimer();
+      backHandler.remove();
+    };
+  }, []);
 
   const isFocused = useIsFocused();
   const reconnectToSavedDevice = async () => {
@@ -122,7 +154,6 @@ export default function useBle() {
   useFocusEffect(
     useCallback(() => {
       if (connectedDevice == null) {
-        console.log('my love');
         scanForDevices();
       }
 
@@ -271,11 +302,10 @@ export default function useBle() {
       ToastAndroid.show('No Characteristic Found', ToastAndroid.SHORT);
       return;
     }
-    // ToastAndroid.show('Success Detect Vibration', ToastAndroid.SHORT);
+
     setMonitoredData((prevState: number) => prevState + 1);
 
     const vibrationData = Buffer.from(characteristic.value, 'base64');
-    // console.log('Vibration data received:', vibrationData);
 
     handleData(vibrationData);
   };
@@ -477,19 +507,24 @@ export default function useBle() {
       return;
     }
 
+    console.log('my data', data[1]);
+
+    console.log('my entire data:', data);
+
     switch (data[1]) {
       case 0x04: {
         const dp = data.slice(3);
         // Process received data
-        // const wave = this._transWaveData(dp);
+        const wave = _transWaveData(dp);
         console.log('0x04', JSON.stringify(dp));
 
-        // if (wave) {
-        //   this.waveDataT[wave.index] = wave;
-        //   this.percentage =
-        //     (Object.keys(this.waveDataT).length * 100) / wave.count;
-        //   //console.log(this.percentage)
-        // }
+        if (wave) {
+          waveDataT[wave.index] = wave;
+          const percentages =
+            (Object.keys(waveDataT).length * 100) / wave.count;
+          setPercentage(percentages);
+          console.log(percentages);
+        }
         break;
       }
       case 0x06: {
@@ -500,30 +535,131 @@ export default function useBle() {
         break;
       }
       case 0x05: {
-        // if (!this.waveDataT) {
-        //   return;
-        // }
-        // Object.keys(this.waveDataT).forEach(key => {
-        //   const p = this.waveDataT[key];
-        //   this.resciveData[Math.floor(p.index / 8)] =
-        //     this.resciveData[Math.floor(p.index / 8)] | this.statu[p.index % 8];
-        // });
+        if (!waveDataT) {
+          return;
+        }
 
-        console.log('wahyu');
-        const dp = data.slice(3, data[2]);
+        Object.keys(waveDataT).forEach(key => {
+          const p = waveDataT[key];
+          resciveData[Math.floor(p.index / 8)] =
+            resciveData[Math.floor(p.index / 8)] | statu[p.index % 8];
+        });
 
-        _transIndexData(dp);
-
-        // this.sendData(0x05, this.resciveData);
-        // if (this.percentage < 100) {
-        //   return;
-        // }
-        // this._processWaveData();
+        sendData(0x05, resciveData);
+        if (percentage < 100) {
+          return;
+        }
+        _processWaveData();
         break;
       }
       default:
         // Handle unknown command
         console.warn(`Unknown command received: ${data[1]}`);
+    }
+  };
+
+  const _processWaveData = () => {
+    const waveData: any = {};
+    let TempDataT: any = [];
+    const keys = Object.keys(waveDataT).sort((a: any, b: any) => a - b);
+    // for (let i = 0; i < keys.length; i++) {
+    //     const key = keys[i];
+    //     const wave = this.waveDataT[key];
+    //     DataT = DataT.concat(wave.data.slice(0, 224));
+    // }
+
+    console.log({waveDataT});
+
+    for (let key in waveDataT) {
+      if (waveDataT.hasOwnProperty(key)) {
+        const wave = waveDataT[key];
+        TempDataT = TempDataT.concat(wave.data.slice(0, 224));
+      }
+    }
+    const DataT = TempDataT.splice(
+      0,
+      Math.round(TempDataT.length / (1024 * 2)) * 1024 * 2,
+    ); //round it to near number and mutiply with 1024x2
+
+    let sampLen = 0;
+    let rate = 0;
+    const firstWave = waveDataT[keys[0]];
+    let dir = null;
+    if (firstWave && firstWave.dir !== undefined) {
+      dir = firstWave.dir;
+    }
+
+    switch (dir) {
+      case 0:
+        sampLen = 8 * 1024;
+        rate = 3125 * 2.56;
+        break;
+      case 2:
+        sampLen = 8 * 1024;
+        rate = 3125 * 2.56;
+        break;
+      case 1:
+        sampLen = 8 * 1024;
+        rate = 3125 * 2.56;
+        break;
+    }
+
+    // DataT = DataT.slice(0, sampLen * 2);
+    const len = DataT.length / 2;
+    const YDataT = [];
+    const crof = firstWave.crof;
+
+    let sum = 0;
+    for (let i = 0; i < len; i++) {
+      const dataTemp = [DataT[i * 2 + 1], DataT[i * 2]];
+      let int16Data = new Int16Array(new Uint8Array(dataTemp).buffer)[0];
+      const dt = int16Data * crof;
+      sum += dt;
+      YDataT.push(dt);
+    }
+
+    const ave = sum / (len - 1);
+    const YData = YDataT.map(p => p - ave);
+    let targetDir = 0;
+    if (firstWave && firstWave.dir !== undefined) {
+      targetDir = firstWave.dir;
+    }
+
+    waveData[targetDir] = YData;
+
+    console.log('++++++waveData:' + Object.keys(waveData).length);
+    // this.waveDataT = {};
+    // this.resciveData = [];
+
+    setWaveDataT([]);
+    setResciveData([]);
+    for (let i = 0; i < 242; i++) {
+      setResciveData((prevState: any) => [...prevState, 0]);
+    }
+    console.log(Object.keys(waveData));
+
+    return waveData;
+  };
+
+  const _transWaveData = (dp: any) => {
+    if (dp.length < 18) {
+      console.log('Data received is too short to process.');
+      return null;
+    }
+
+    try {
+      const crc = bytesToInt(dp.slice(0, 4));
+      const crof = bytesToFloat(dp.slice(4, 8));
+      const count = bytesToInt(dp.slice(8, 12));
+      const index = bytesToInt(dp.slice(12, 16));
+      const dir = dp[16];
+      const rep = dp[17];
+      const data = dp.slice(18);
+
+      return {crc, crof, count, index, dir, rep, data};
+    } catch (error) {
+      console.log('There was an error when trying to parse wave data', error);
+      return null;
     }
   };
 
@@ -588,23 +724,90 @@ export default function useBle() {
 
   const stopCollectTmpData = async () => {
     setIsDisableStopBtn(true);
+
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+
     await collectData(4, 0, 0, 1000);
   };
 
   const pauseCollectTempData = async () => {
     setIsPaused(true);
-    // await collectData(4, 0, 0, 1000);
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    setIsRunning(false);
+    await collectData(4, 0, 0, 1000);
   };
 
   const resumeCollectData = async () => {
     setIsPaused(false);
+    setIsRunning(true);
+
+    intervalRef.current = setInterval(() => {
+      setRunningTime(prev => prev + 1000);
+    }, 1000);
   };
 
   const collectVibrationData = async () => {
+    console.log('hello world');
     setIsDisableStopBtn(false);
-
+    // await collectData(0, 3, 8, 12500);
+    await collectData(2, 0, 0, 3125);
     setMonitoredData(0);
     setReceivedData([]);
+    // setHasStarted(true);
+
+    setRunningTime(0);
+
+    intervalRef.current = setInterval(() => {
+      setRunningTime(prev => prev + 1000);
+    }, 1000);
+  };
+
+  const startTimer = async () => {
+    await collectVibrationData();
+  };
+
+  const resumeTimer = () => {
+    setIsRunning(true);
+    intervalRef.current = setInterval(() => {
+      setRunningTime(prev => prev + 1000);
+    }, 1000);
+
+    resumeCollectData();
+  };
+
+  const pauseTimer = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    setIsRunning(false);
+    pauseCollectTempData();
+  };
+
+  const stopTimer = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    setIsRunning(false);
+    setHasStarted(false);
+    setRunningTime(0);
+    stopCollectTmpData();
+  };
+
+  const formatTime = (milliseconds: number) => {
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const minutes = Math.floor(totalSeconds / 60)
+      .toString()
+      .padStart(2, '0');
+    const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+    return `${minutes}:${seconds}`;
   };
 
   return {
@@ -628,5 +831,12 @@ export default function useBle() {
     resumeCollectData,
     pauseCollectTempData,
     isPaused,
+    startTimer,
+    resumeTimer,
+    stopTimer,
+    formatTime,
+    runningTime,
+    pauseTimer,
+    MAX_TIME,
   };
 }
