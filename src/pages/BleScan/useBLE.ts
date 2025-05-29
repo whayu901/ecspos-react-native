@@ -19,6 +19,7 @@ import {PERMISSIONS} from 'react-native-permissions';
 import {Buffer} from 'buffer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import {computeAmplitudeSpectrum} from '../../utils/SignalHelper';
 
 type PermissionCallback = (result: boolean) => void;
 
@@ -57,6 +58,12 @@ export default function useBle() {
   const [waveDataT, setWaveDataT] = useState<any>({});
   const [resciveData, setResciveData] = useState<any>([]);
   const [percentage, setPercentage] = useState(0);
+  const [totalCount, setTotalCount] = useState<number | null>(null);
+  const [spectrumeData, setSpectrumeData] = useState([]);
+  const [tempSpectrumeData, setTempSpectrumeData] = useState([]);
+  const [isLoadingCollectData, setIsLoadingCollectData] = useState(false);
+
+  const totalCountRef = useRef<number | null>(null);
 
   const statu = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80];
 
@@ -84,18 +91,19 @@ export default function useBle() {
   const reconnectToSavedDevice = async () => {
     try {
       // Retrieve the saved device ID from AsyncStorage
-      const savedDeviceId = await AsyncStorage.getItem(
+      const savedDeviceRaw: any = await AsyncStorage.getItem(
         'my-connected-device-id',
       );
 
-      setIdDevice(savedDeviceId);
+      const savedDeviceId = JSON.parse(savedDeviceRaw);
+      console.log('my reconnected data', savedDeviceId);
 
-      console.log({savedDeviceId});
+      setIdDevice(savedDeviceId?.id);
 
       if (savedDeviceId) {
         // Use the saved device ID to reconnect
-        const deviceConnection = await bleManager.connectToDevice(
-          savedDeviceId,
+        let deviceConnection = await bleManager.connectToDevice(
+          savedDeviceId?.id,
         );
 
         setIsSubscribed(false);
@@ -112,6 +120,7 @@ export default function useBle() {
 
           characteristics.forEach((characteristicitem: any) => {
             if (characteristicitem.uuid === CMD_CHARAC_ID) {
+              console.log('anjir lah', characteristicitem);
               setWriteCharacteristic(characteristicitem);
             }
             if (characteristicitem.uuid === DATA_CHARAC_ID) {
@@ -119,11 +128,18 @@ export default function useBle() {
             }
           });
 
+          console.log('deviceConnection1', deviceConnection);
           // Stop scanning if connected
           bleManager.stopDeviceScan();
 
           // Request MTU for device
-          await bleManager.requestMTUForDevice(savedDeviceId, 512);
+          await bleManager.requestMTUForDevice(savedDeviceId?.id, 517);
+
+          deviceConnection.serviceUUIDs = savedDeviceId?.serviceUUIDs;
+          deviceConnection.rawScanRecord = savedDeviceId?.rawScanRecord;
+          deviceConnection.isConnectable = savedDeviceId?.isConnectable;
+          deviceConnection.rssi = savedDeviceId?.rssi;
+          deviceConnection.localName = savedDeviceId?.localName;
 
           startStreamingData(deviceConnection);
         }
@@ -208,7 +224,9 @@ export default function useBle() {
       }
       if (
         device &&
-        (device?.name?.includes('DT_ZB') || device?.name?.includes('DT_'))
+        (device?.name?.includes('DT_ZB') ||
+          device?.name?.includes('DT_') ||
+          device?.name?.includes('SBI310_'))
       ) {
         reconnectToSavedDevice();
 
@@ -237,7 +255,10 @@ export default function useBle() {
 
       const deviceConnection = await bleManager.connectToDevice(device?.id);
 
-      await AsyncStorage.setItem('my-connected-device-id', String(device?.id)); // Save device info
+      await AsyncStorage.setItem(
+        'my-connected-device-id',
+        JSON.stringify(device),
+      ); // Save device info
 
       setConnectedDevice(deviceConnection);
       await deviceConnection.discoverAllServicesAndCharacteristics();
@@ -314,6 +335,11 @@ export default function useBle() {
     if (device && !isSubscribed) {
       setIsSubscribed(true);
 
+      console.log(
+        'my monito character',
+        device?.monitorCharacteristicForService,
+      );
+
       if (device?.monitorCharacteristicForService) {
         device.monitorCharacteristicForService(
           SERVICE_ID,
@@ -370,14 +396,13 @@ export default function useBle() {
       cs = 256 - cs;
 
       const finalData = [...nowSendData, cs];
-      // console.log('finalData: ', JSON.stringify(finalData));
       const buffer = Buffer.from(finalData).toString('base64');
-      // console.log('buffer: ', buffer);
 
       writeCharacteristic
         ?.writeWithResponse(buffer)
         .then(() => {
           console.log('Finished writing data');
+          setIsLoadingCollectData(false);
           resolve();
         })
         .catch((err: any) =>
@@ -495,7 +520,6 @@ export default function useBle() {
   };
 
   const handleData = (data: any) => {
-    console.log('Data received:', data[1]);
     // Add handling logic here as per your application needs
 
     let allVal = 0;
@@ -507,23 +531,35 @@ export default function useBle() {
       return;
     }
 
-    console.log('my data', data[1]);
-
-    console.log('my entire data:', data);
+    // console.log('my entire data:', data);
 
     switch (data[1]) {
       case 0x04: {
         const dp = data.slice(3);
         // Process received data
         const wave = _transWaveData(dp);
-        console.log('0x04', JSON.stringify(dp));
 
         if (wave) {
-          waveDataT[wave.index] = wave;
-          const percentages =
-            (Object.keys(waveDataT).length * 100) / wave.count;
-          setPercentage(percentages);
-          console.log(percentages);
+          if (totalCountRef.current === null) {
+            totalCountRef.current = wave.count;
+          }
+          setWaveDataT((prev: any) => ({
+            ...prev,
+            [wave.index]: wave,
+          }));
+          // console.log({waveDataT});
+          // console.log('my wave', wave);
+          const waveHelper = waveDataT;
+          waveHelper[wave.index] = wave;
+          // waveHelper[wave.index] = wave;
+          // console.log('my helper', waveHelper);
+          // setWaveDataT(waveHelper);
+
+          const percentages: any =
+            (Object.keys(waveHelper).length * 100) / wave.count;
+          setPercentage(percentages.toFixed(0));
+
+          console.log('percetanges', percentages);
         }
         break;
       }
@@ -539,16 +575,34 @@ export default function useBle() {
           return;
         }
 
+        const updatedData = [...resciveData];
+
         Object.keys(waveDataT).forEach(key => {
           const p = waveDataT[key];
-          resciveData[Math.floor(p.index / 8)] =
-            resciveData[Math.floor(p.index / 8)] | statu[p.index % 8];
+          const index = Math.floor(p.index / 8);
+          const bit = statu[p.index % 8];
+
+          updatedData[index] = (updatedData[index] || 0) | bit;
         });
 
-        sendData(0x05, resciveData);
-        if (percentage < 100) {
+        // Update state
+        setResciveData(updatedData);
+
+        // Use the updatedData immediately
+        sendData(0x05, updatedData);
+        if (!totalCountRef.current) {
+          console.log('nothing counting');
           return;
         }
+
+        const total = Object.keys(waveDataT).length;
+        const currentPercentage = (total * 100) / totalCountRef.current;
+
+        if (currentPercentage < 100) {
+          console.log("still haven't 100%");
+          return;
+        }
+
         _processWaveData();
         break;
       }
@@ -562,13 +616,6 @@ export default function useBle() {
     const waveData: any = {};
     let TempDataT: any = [];
     const keys = Object.keys(waveDataT).sort((a: any, b: any) => a - b);
-    // for (let i = 0; i < keys.length; i++) {
-    //     const key = keys[i];
-    //     const wave = this.waveDataT[key];
-    //     DataT = DataT.concat(wave.data.slice(0, 224));
-    // }
-
-    console.log({waveDataT});
 
     for (let key in waveDataT) {
       if (waveDataT.hasOwnProperty(key)) {
@@ -576,18 +623,45 @@ export default function useBle() {
         TempDataT = TempDataT.concat(wave.data.slice(0, 224));
       }
     }
+
+    // const targetLength = Math.floor(TempDataT.length / (1024 * 2)) * 1024 * 2;
+    // const DataBytes = TempDataT.slice(0, targetLength);
+
+    // console.log('my temp t', TempDataT.splice(0));
     const DataT = TempDataT.splice(
       0,
       Math.round(TempDataT.length / (1024 * 2)) * 1024 * 2,
     ); //round it to near number and mutiply with 1024x2
 
+    // const DataT: number[] = [];
+    // for (let i = 0; i < DataBytes.length; i += 2) {
+    //   const low = DataBytes[i];
+    //   const high = DataBytes[i + 1];
+    //   if (low === undefined || high === undefined) {
+    //     break;
+    //   }
+
+    //   const combined = (high << 8) | low;
+    //   const signed = combined > 0x7fff ? combined - 0x10000 : combined;
+
+    //   // Output in [high_byte, low_byte] format, like your example
+    //   const byte1 = (signed >> 8) & 0xff;
+    //   const byte2 = signed & 0xff;
+    //   DataT.push(byte1, byte2);
+    // }
+
+    // console.log('myDataT', DataT);
+
     let sampLen = 0;
     let rate = 0;
     const firstWave = waveDataT[keys[0]];
+    // console.log({firstWave});
     let dir = null;
     if (firstWave && firstWave.dir !== undefined) {
       dir = firstWave.dir;
     }
+
+    // console.log({dir});
 
     switch (dir) {
       case 0:
@@ -625,9 +699,14 @@ export default function useBle() {
       targetDir = firstWave.dir;
     }
 
+    // console.log({YData});
+
     waveData[targetDir] = YData;
 
-    console.log('++++++waveData:' + Object.keys(waveData).length);
+    // console.log('++++++waveData:', waveData);
+    // const newfftData = computeAmplitudeSpectrum(waveData);
+
+    // console.log({newfftData});
     // this.waveDataT = {};
     // this.resciveData = [];
 
@@ -636,7 +715,22 @@ export default function useBle() {
     for (let i = 0; i < 242; i++) {
       setResciveData((prevState: any) => [...prevState, 0]);
     }
-    console.log(Object.keys(waveData));
+
+    const waveDataFormatted = waveData[dir.toString()];
+    const newfftData = computeAmplitudeSpectrum(waveDataFormatted);
+
+    setSpectrumeData(prevState => {
+      const newState: any = [...prevState];
+      newState[dir] = newfftData; // Replace or insert at the correct index
+      return newState;
+    });
+
+    setTempSpectrumeData(prev => {
+      const slicedData = newfftData.slice(0, 5); // take only the first 100
+      const newState: any = [...prev];
+      newState[dir] = slicedData; // replace or insert at dir index
+      return newState;
+    });
 
     return waveData;
   };
@@ -654,9 +748,32 @@ export default function useBle() {
       const index = bytesToInt(dp.slice(12, 16));
       const dir = dp[16];
       const rep = dp[17];
-      const data = dp.slice(18);
+      const rawData = dp.slice(18);
 
-      return {crc, crof, count, index, dir, rep, data};
+      // Convert every 2 bytes to unsigned 16-bit int (big-endian)
+      const waveData: number[] = [];
+      for (let i = 0; i < rawData.length - 1; i += 2) {
+        const high = rawData[i]; // first byte is high
+        const low = rawData[i + 1]; // second byte is low
+        const value = (high << 8) | low;
+        waveData.push(value);
+      }
+
+      const newfftData = computeAmplitudeSpectrum(waveData);
+
+      console.log({newfftData});
+
+      // console.log('Processed wave data:', waveData);
+
+      return {
+        crc,
+        crof,
+        count,
+        index,
+        dir,
+        rep,
+        data: waveData,
+      };
     } catch (error) {
       console.log('There was an error when trying to parse wave data', error);
       return null;
@@ -735,10 +852,10 @@ export default function useBle() {
 
   const pauseCollectTempData = async () => {
     setIsPaused(true);
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
+    // if (intervalRef.current) {
+    //   clearInterval(intervalRef.current);
+    //   intervalRef.current = null;
+    // }
     setIsRunning(false);
     await collectData(4, 0, 0, 1000);
   };
@@ -747,25 +864,25 @@ export default function useBle() {
     setIsPaused(false);
     setIsRunning(true);
 
-    intervalRef.current = setInterval(() => {
-      setRunningTime(prev => prev + 1000);
-    }, 1000);
+    // intervalRef.current = setInterval(() => {
+    //   setRunningTime(prev => prev + 1000);
+    // }, 1000);
   };
 
   const collectVibrationData = async () => {
-    console.log('hello world');
     setIsDisableStopBtn(false);
-    // await collectData(0, 3, 8, 12500);
-    await collectData(2, 0, 0, 3125);
+    setIsLoadingCollectData(true);
+    await collectData(0, 3, 8, 3125);
+    // await collectData(2, 0, 0, 3125);
     setMonitoredData(0);
     setReceivedData([]);
     // setHasStarted(true);
 
     setRunningTime(0);
 
-    intervalRef.current = setInterval(() => {
-      setRunningTime(prev => prev + 1000);
-    }, 1000);
+    // intervalRef.current = setInterval(() => {
+    //   setRunningTime(prev => prev + 1000);
+    // }, 1000);
   };
 
   const startTimer = async () => {
@@ -838,5 +955,9 @@ export default function useBle() {
     runningTime,
     pauseTimer,
     MAX_TIME,
+    spectrumeData,
+    tempSpectrumeData,
+    isLoadingCollectData,
+    percentage,
   };
 }

@@ -28,20 +28,24 @@ const HomeScreen = () => {
     collectVibrationData,
     stopCollectTmpData,
     isDisableStopBtn,
-    receivedData,
+    // receivedData,
     disconnectDevice,
 
     collectValue,
     resumeCollectData,
     pauseCollectTempData,
     isPaused,
-    startTimer,
-    resumeTimer,
-    stopTimer,
+    // startTimer,
+    // resumeTimer,
+    // stopTimer,
     formatTime,
     runningTime,
-    pauseTimer,
+    // pauseTimer,
     MAX_TIME,
+    // spectrumeData,
+    tempSpectrumeData,
+    isLoadingCollectData,
+    percentage,
   } = useBle();
 
   const WIDTH = Dimensions.get('screen').width - 35;
@@ -109,7 +113,7 @@ const HomeScreen = () => {
           </Text>
         )}
 
-        {receivedData.length !== 0 && (
+        {/* {receivedData.length !== 0 && (
           <LineChart
             width={WIDTH}
             height={500}
@@ -146,20 +150,54 @@ const HomeScreen = () => {
               marginVertical: 8,
               borderRadius: 16,
             }}
+          /> */}
+        {tempSpectrumeData.length === 3 ? (
+          <LineChart
+            width={WIDTH}
+            height={500}
+            withHorizontalLabels={false}
+            withInnerLines={false}
+            data={{
+              labels: [], // Dynamic labels per second
+              datasets: tempSpectrumeData.map((data, index) => ({
+                data,
+                color: () => ['blue', 'green', 'red'][index], // Color per line
+                strokeWidth: 2,
+              })),
+            }}
+            chartConfig={{
+              backgroundColor: '#e26a00',
+              backgroundGradientFrom: '#fb8c00',
+              backgroundGradientTo: '#ffa726',
+              decimalPlaces: 1,
+              color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+              labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+              style: {
+                borderRadius: 16,
+              },
+              propsForDots: {
+                r: '6',
+                strokeWidth: '2',
+                stroke: '#ffa726',
+              },
+
+              // Format y-axis labels to show temperature in °C
+              formatYLabel: value => `${value}°C`,
+            }}
+            bezier
+            yAxisLabel=""
+            yAxisSuffix="°C"
+            style={{
+              marginVertical: 8,
+              borderRadius: 16,
+            }}
           />
-          // <Text
-          //   style={{
-          //     fontSize: 14,
-          //     fontWeight: 'bold',
-          //     color: 'white',
-          //     textAlign: 'center',
-          //     position: 'absolute',
-          //     bottom: -10,
-          //     right: 0,
-          //     transform: [{translateX: -40}],
-          //   }}>
-          //   Seconds
-          // </Text>
+        ) : isLoadingCollectData ? (
+          <View>
+            <Text>{`Sedang mengambil data ${percentage}`}</Text>
+          </View>
+        ) : (
+          <View />
         )}
       </View>
       <View style={styles.buttonContainer}>
@@ -203,7 +241,9 @@ const HomeScreen = () => {
             <Button
               title="Stop Collect Data"
               onPress={stopCollectTmpData}
-              disabled={isDisableStopBtn || isPaused}
+              disabled={
+                isDisableStopBtn || isPaused || tempSpectrumeData.length < 3
+              }
               color={'red'}
             />
           </View>
