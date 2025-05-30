@@ -12,6 +12,8 @@ import com.facebook.react.bridge.ReactMethod;
 import com.scottyab.rootbeer.RootBeer;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.util.Locale;
 
@@ -36,6 +38,111 @@ public class RootSecurityModule extends ReactContextBaseJavaModule {
         } catch (Exception e) {
             promise.reject("ROOT_CHECK_FAILED", e);
         }
+    }
+
+    @ReactMethod
+    public void isDeviceRooted(Promise promise) {
+        try {
+            boolean isRooted =
+                    checkSuBinary() ||
+                            checkTestKeys() ||
+                            detectInitMagisk() ||
+                            detectMagiskByMounts() ||
+                            detectMagiskProps() ||
+                            detectMagiskProcess();
+
+            promise.resolve(isRooted);
+        } catch (Exception e) {
+            promise.reject("ERROR", e);
+        }
+    }
+
+    private boolean detectMagiskByMounts() {
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader("/proc/mounts"));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.contains("magisk")) return true;
+            }
+            reader.close();
+        } catch (Exception e) {
+            return false;
+        }
+        return false;
+    }
+
+    private boolean detectMagiskProps() {
+        try {
+            Process process = Runtime.getRuntime().exec("getprop");
+            BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line;
+            while ((line = in.readLine()) != null) {
+                if (line.contains("magisk") || line.contains("zygisk")) return true;
+            }
+            in.close();
+        } catch (Exception e) {
+            return false;
+        }
+        return false;
+    }
+
+    private boolean detectInitMagisk() {
+        return new File("/init.magisk.rc").exists();
+    }
+
+    private boolean detectMagiskProcess() {
+        try {
+            Process process = Runtime.getRuntime().exec("ps");
+            BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line;
+            while ((line = in.readLine()) != null) {
+                if (line.contains("magisk") || line.contains("zygisk")) return true;
+            }
+            in.close();
+        } catch (Exception e) {
+            return false;
+        }
+        return false;
+    }
+
+
+    private boolean checkSuBinary() {
+        String[] paths = {
+                "/system/bin/su", "/system/xbin/su", "/sbin/su",
+                "/system/sd/xbin/su", "/system/bin/failsafe/su",
+                "/data/local/su", "/data/local/bin/su", "/data/local/xbin/su"
+        };
+        for (String path : paths) {
+            if (new File(path).exists()) return true;
+        }
+        return false;
+    }
+
+    private boolean checkTestKeys() {
+        return Build.TAGS != null && Build.TAGS.contains("test-keys");
+    }
+
+    private boolean checkDangerousProps() {
+        String[] dangerousProps = {
+                "/system/app/Superuser.apk",
+                "/system/app/Magisk.apk",
+                "/system/xbin/daemonsu",
+                "/system/etc/init.d/99SuperSUDaemon"
+        };
+        for (String prop : dangerousProps) {
+            if (new File(prop).exists()) return true;
+        }
+        return false;
+    }
+
+    private boolean checkMagisk() {
+        String[] magiskPaths = {
+                "/sbin/magisk", "/init.magisk.rc", "/data/adb/magisk", "/data/adb/modules"
+        };
+        for (String path : magiskPaths) {
+            if (new File(path).exists()) return true;
+        }
+        return false;
     }
 
     @ReactMethod

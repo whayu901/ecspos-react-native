@@ -6,6 +6,7 @@ const RootSecurityModule = {
   isRooting: async (): Promise<boolean> => RootSecurity.isRooting(),
   isDeveloperMode: async (): Promise<boolean> => RootSecurity.isDeveloperMode(),
   isFridaDetected: async (): Promise<boolean> => RootSecurity.isFridaDetected(),
+  isDeviceRooted: async (): Promise<boolean> => RootSecurity.isDeviceRooted(),
 };
 
 export default RootSecurityModule;

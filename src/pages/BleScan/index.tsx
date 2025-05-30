@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Dimensions,
   TouchableOpacity,
+  ScrollView,
 } from 'react-native';
 import {LineChart} from 'react-native-chart-kit';
 
@@ -60,7 +61,7 @@ const HomeScreen = () => {
 
   return (
     <>
-      <View style={styles.container}>
+      <ScrollView style={styles.container}>
         {isScanningDevice && (
           <View style={styles.loaderContainer}>
             <ActivityIndicator size={'small'} />
@@ -151,7 +152,11 @@ const HomeScreen = () => {
               borderRadius: 16,
             }}
           /> */}
-        {tempSpectrumeData.length === 3 ? (
+        {isLoadingCollectData ? (
+          <View>
+            <Text>{`Sedang mengambil data ${percentage}`}</Text>
+          </View>
+        ) : tempSpectrumeData.length === 3 ? (
           <LineChart
             width={WIDTH}
             height={500}
@@ -192,14 +197,10 @@ const HomeScreen = () => {
               borderRadius: 16,
             }}
           />
-        ) : isLoadingCollectData ? (
-          <View>
-            <Text>{`Sedang mengambil data ${percentage}`}</Text>
-          </View>
         ) : (
           <View />
         )}
-      </View>
+      </ScrollView>
       <View style={styles.buttonContainer}>
         <Button
           title="Scan Devices"

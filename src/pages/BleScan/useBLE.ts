@@ -726,7 +726,7 @@ export default function useBle() {
     });
 
     setTempSpectrumeData(prev => {
-      const slicedData = newfftData.slice(0, 5); // take only the first 100
+      const slicedData = newfftData.slice(0, 10); // take only the first 100
       const newState: any = [...prev];
       newState[dir] = slicedData; // replace or insert at dir index
       return newState;
@@ -758,10 +758,6 @@ export default function useBle() {
         const value = (high << 8) | low;
         waveData.push(value);
       }
-
-      const newfftData = computeAmplitudeSpectrum(waveData);
-
-      console.log({newfftData});
 
       // console.log('Processed wave data:', waveData);
 

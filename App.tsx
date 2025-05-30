@@ -12,9 +12,9 @@ const App = () => {
     const runCheck = async () => {
       const rooted = await RootServiceModule.isRooting();
       const frida = await RootServiceModule.isFridaDetected();
-      // const devMode = await RootServiceModule.isDeveloperMode();
+      const isDeviceRooted = await RootServiceModule.isDeviceRooted();
 
-      if (rooted || frida) {
+      if (rooted || frida || isDeviceRooted) {
         setIsJailbroken(true);
       }
     };
