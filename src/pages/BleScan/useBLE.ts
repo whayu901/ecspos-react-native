@@ -88,7 +88,7 @@ export default function useBle() {
   }, []);
 
   const isFocused = useIsFocused();
-  const reconnectToSavedDevice = async () => {
+  const reconnectToSavedDevice = async (device: Device) => {
     try {
       // Retrieve the saved device ID from AsyncStorage
       const savedDeviceRaw: any = await AsyncStorage.getItem(
@@ -96,52 +96,51 @@ export default function useBle() {
       );
 
       const savedDeviceId = JSON.parse(savedDeviceRaw);
-      console.log('my reconnected data', savedDeviceId);
 
-      setIdDevice(savedDeviceId?.id);
+      if (device.id === savedDeviceId.id) {
+        setIdDevice(device.id);
 
-      if (savedDeviceId) {
-        // Use the saved device ID to reconnect
-        let deviceConnection = await bleManager.connectToDevice(
-          savedDeviceId?.id,
-        );
+        if (savedDeviceId) {
+          // Use the saved device ID to reconnect
+          const deviceConnection = await bleManager.connectToDevice(device.id);
 
-        setIsSubscribed(false);
-        if (deviceConnection) {
-          // Successfully connected, now discover services and characteristics
+          setIsSubscribed(false);
+          if (deviceConnection) {
+            // Successfully connected, now discover services and characteristics
 
-          setConnectedDevice(deviceConnection); // Store the connection state
+            setConnectedDevice(deviceConnection); // Store the connection state
 
-          // Discover all services and characteristics
-          await deviceConnection.discoverAllServicesAndCharacteristics();
+            // Discover all services and characteristics
+            await deviceConnection.discoverAllServicesAndCharacteristics();
 
-          const characteristics =
-            await deviceConnection.characteristicsForService(SERVICE_ID);
+            const characteristics =
+              await deviceConnection.characteristicsForService(SERVICE_ID);
 
-          characteristics.forEach((characteristicitem: any) => {
-            if (characteristicitem.uuid === CMD_CHARAC_ID) {
-              console.log('anjir lah', characteristicitem);
-              setWriteCharacteristic(characteristicitem);
-            }
-            if (characteristicitem.uuid === DATA_CHARAC_ID) {
-              setReadCharacteristic(characteristicitem);
-            }
-          });
+            characteristics.forEach((characteristicitem: any) => {
+              if (characteristicitem.uuid === CMD_CHARAC_ID) {
+                console.log('anjir lah', characteristicitem);
+                setWriteCharacteristic(characteristicitem);
+              }
+              if (characteristicitem.uuid === DATA_CHARAC_ID) {
+                setReadCharacteristic(characteristicitem);
+              }
+            });
 
-          console.log('deviceConnection1', deviceConnection);
-          // Stop scanning if connected
-          bleManager.stopDeviceScan();
+            console.log('deviceConnection1', device);
+            // Stop scanning if connected
+            bleManager.stopDeviceScan();
 
-          // Request MTU for device
-          await bleManager.requestMTUForDevice(savedDeviceId?.id, 517);
+            // Request MTU for device
+            await bleManager.requestMTUForDevice(savedDeviceId?.id, 517);
 
-          deviceConnection.serviceUUIDs = savedDeviceId?.serviceUUIDs;
-          deviceConnection.rawScanRecord = savedDeviceId?.rawScanRecord;
-          deviceConnection.isConnectable = savedDeviceId?.isConnectable;
-          deviceConnection.rssi = savedDeviceId?.rssi;
-          deviceConnection.localName = savedDeviceId?.localName;
+            deviceConnection.serviceUUIDs = savedDeviceId?.serviceUUIDs;
+            deviceConnection.rawScanRecord = savedDeviceId?.rawScanRecord;
+            deviceConnection.isConnectable = savedDeviceId?.isConnectable;
+            deviceConnection.rssi = savedDeviceId?.rssi;
+            deviceConnection.localName = savedDeviceId?.localName;
 
-          startStreamingData(deviceConnection);
+            startStreamingData(device);
+          }
         }
       }
     } catch (error) {
@@ -228,7 +227,7 @@ export default function useBle() {
           device?.name?.includes('DT_') ||
           device?.name?.includes('SBI310_'))
       ) {
-        reconnectToSavedDevice();
+        reconnectToSavedDevice(device);
 
         setAllDevices(prevState => {
           if (!isDuplicateDevice(prevState, device)) {
@@ -379,6 +378,8 @@ export default function useBle() {
   }
 
   const sendData = (cmd: number, data: number[]): Promise<void> => {
+    setIsLoadingCollectData(true);
+
     return new Promise(async (resolve, reject) => {
       if (!writeCharacteristic) {
         reject(new Error('No write characteristic available.'));
@@ -397,17 +398,27 @@ export default function useBle() {
 
       const finalData = [...nowSendData, cs];
       const buffer = Buffer.from(finalData).toString('base64');
+      console.log({buffer});
 
-      writeCharacteristic
-        ?.writeWithResponse(buffer)
-        .then(() => {
-          console.log('Finished writing data');
-          setIsLoadingCollectData(false);
-          resolve();
-        })
-        .catch((err: any) =>
-          reject(new Error('Error writing data to characteristic: ' + err)),
-        );
+      try {
+        await writeCharacteristic?.writeWithResponse(buffer);
+        console.log('Finished writing data');
+        setIsLoadingCollectData(false);
+        resolve();
+      } catch (error) {
+        reject(new Error('Error writing data to characteristic: ' + error));
+      }
+
+      // writeCharacteristic
+      //   ?.writeWithResponse(buffer)
+      //   .then(() => {
+      //     console.log('Finished writing data');
+      //     setIsLoadingCollectData(false);
+      //     resolve();
+      //   })
+      //   .catch((err: any) =>
+      //     reject(new Error('Error writing data to characteristic: ' + err)),
+      //   );
     });
 
     // const mtuSize = 20; // Adjust based on your device's MTU

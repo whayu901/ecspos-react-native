@@ -243,7 +243,10 @@ const HomeScreen = () => {
               title="Stop Collect Data"
               onPress={stopCollectTmpData}
               disabled={
-                isDisableStopBtn || isPaused || tempSpectrumeData.length < 3
+                isDisableStopBtn ||
+                isPaused ||
+                tempSpectrumeData.length < 3 ||
+                isLoadingCollectData
               }
               color={'red'}
             />
