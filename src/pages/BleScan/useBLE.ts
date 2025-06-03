@@ -131,7 +131,7 @@ export default function useBle() {
             bleManager.stopDeviceScan();
 
             // Request MTU for device
-            await bleManager.requestMTUForDevice(savedDeviceId?.id, 1000);
+            await bleManager.requestMTUForDevice(savedDeviceId?.id, 517);
 
             deviceConnection.serviceUUIDs = savedDeviceId?.serviceUUIDs;
             deviceConnection.rawScanRecord = savedDeviceId?.rawScanRecord;
@@ -275,7 +275,7 @@ export default function useBle() {
       });
       bleManager.stopDeviceScan();
 
-      await bleManager.requestMTUForDevice(device?.id, 512); // Set MTU
+      await bleManager.requestMTUForDevice(device?.id, 517); // Set MTU
 
       startStreamingData(device);
     } catch (error) {
@@ -883,9 +883,13 @@ export default function useBle() {
     // await collectData(2, 0, 0, 3125);
     setMonitoredData(0);
     setReceivedData([]);
+    // setWaveDataT([]);
     // setHasStarted(true);
 
     setRunningTime(0);
+    setTempSpectrumeData([]);
+    setSpectrumeData([]);
+    setPercentage(0);
 
     // intervalRef.current = setInterval(() => {
     //   setRunningTime(prev => prev + 1000);

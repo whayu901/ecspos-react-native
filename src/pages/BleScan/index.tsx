@@ -163,7 +163,7 @@ const HomeScreen = () => {
             withHorizontalLabels={false}
             withInnerLines={false}
             data={{
-              labels: [], // Dynamic labels per second
+              labels: tempSpectrumeData.map((_, i) => `${i + 1}`), // Dynamic labels per second
               datasets: tempSpectrumeData.map((data, index) => ({
                 data,
                 color: () => ['blue', 'green', 'red'][index], // Color per line
