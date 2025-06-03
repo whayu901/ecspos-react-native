@@ -131,7 +131,7 @@ export default function useBle() {
             bleManager.stopDeviceScan();
 
             // Request MTU for device
-            await bleManager.requestMTUForDevice(savedDeviceId?.id, 517);
+            await bleManager.requestMTUForDevice(savedDeviceId?.id, 1000);
 
             deviceConnection.serviceUUIDs = savedDeviceId?.serviceUUIDs;
             deviceConnection.rawScanRecord = savedDeviceId?.rawScanRecord;
