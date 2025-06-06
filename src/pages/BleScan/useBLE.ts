@@ -131,7 +131,7 @@ export default function useBle() {
             bleManager.stopDeviceScan();
 
             // Request MTU for device
-            await bleManager.requestMTUForDevice(savedDeviceId?.id, 517);
+            await bleManager.requestMTUForDevice(savedDeviceId?.id, 512);
 
             deviceConnection.serviceUUIDs = savedDeviceId?.serviceUUIDs;
             deviceConnection.rawScanRecord = savedDeviceId?.rawScanRecord;
@@ -275,7 +275,7 @@ export default function useBle() {
       });
       bleManager.stopDeviceScan();
 
-      await bleManager.requestMTUForDevice(device?.id, 517); // Set MTU
+      await bleManager.requestMTUForDevice(device?.id, 512); // Set MTU
 
       startStreamingData(device);
     } catch (error) {
