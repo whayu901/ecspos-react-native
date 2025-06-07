@@ -64,6 +64,7 @@ export default function useBle() {
   const [isLoadingCollectData, setIsLoadingCollectData] = useState(false);
 
   const totalCountRef = useRef<number | null>(null);
+  const writeCharRef = useRef<any | null>(null);
 
   const statu = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80];
 
@@ -105,42 +106,36 @@ export default function useBle() {
           const deviceConnection = await bleManager.connectToDevice(device.id);
 
           setIsSubscribed(false);
-          if (deviceConnection) {
-            // Successfully connected, now discover services and characteristics
 
-            setConnectedDevice(deviceConnection); // Store the connection state
+          // Successfully connected, now discover services and characteristics
 
-            // Discover all services and characteristics
-            await deviceConnection.discoverAllServicesAndCharacteristics();
+          setConnectedDevice(deviceConnection); // Store the connection state
 
-            const characteristics =
-              await deviceConnection.characteristicsForService(SERVICE_ID);
+          // Discover all services and characteristics
+          await deviceConnection.discoverAllServicesAndCharacteristics();
 
-            characteristics.forEach((characteristicitem: any) => {
-              if (characteristicitem.uuid === CMD_CHARAC_ID) {
-                console.log('anjir lah', characteristicitem);
-                setWriteCharacteristic(characteristicitem);
-              }
-              if (characteristicitem.uuid === DATA_CHARAC_ID) {
-                setReadCharacteristic(characteristicitem);
-              }
-            });
+          const characteristics =
+            await deviceConnection.characteristicsForService(SERVICE_ID);
 
-            console.log('deviceConnection1', device);
-            // Stop scanning if connected
-            bleManager.stopDeviceScan();
+          characteristics.forEach((characteristicitem: any) => {
+            if (characteristicitem.uuid === CMD_CHARAC_ID) {
+              console.log('anjir lah', characteristicitem);
+              setWriteCharacteristic(characteristicitem);
+              writeCharRef.current = characteristicitem;
+            }
+            if (characteristicitem.uuid === DATA_CHARAC_ID) {
+              setReadCharacteristic(characteristicitem);
+            }
+          });
 
-            // Request MTU for device
-            await bleManager.requestMTUForDevice(savedDeviceId?.id, 512);
+          console.log('deviceConnection1', device);
+          // Stop scanning if connected
+          bleManager.stopDeviceScan();
 
-            deviceConnection.serviceUUIDs = savedDeviceId?.serviceUUIDs;
-            deviceConnection.rawScanRecord = savedDeviceId?.rawScanRecord;
-            deviceConnection.isConnectable = savedDeviceId?.isConnectable;
-            deviceConnection.rssi = savedDeviceId?.rssi;
-            deviceConnection.localName = savedDeviceId?.localName;
+          // Request MTU for device
+          await bleManager.requestMTUForDevice(device?.id, 512);
 
-            startStreamingData(device);
-          }
+          startStreamingData(device);
         }
       }
     } catch (error) {
@@ -162,7 +157,6 @@ export default function useBle() {
       // await collectData(4, 0, 0, 1000);
 
       disconnectDevice(idDevice);
-      console.log('my connected Device', idDevice);
     }
   }, [idDevice]);
 
@@ -175,7 +169,7 @@ export default function useBle() {
       return () => {
         stopCOllectDataAndDisconnected();
       };
-    }, [idDevice]),
+    }, []),
   );
 
   const requestPermissions = async (callback: PermissionCallback) => {
@@ -268,6 +262,7 @@ export default function useBle() {
       characteristic.forEach((characteristicitem: any) => {
         if (characteristicitem.uuid === CMD_CHARAC_ID) {
           setWriteCharacteristic(characteristicitem);
+          writeCharRef.current = characteristicitem;
         }
         if (characteristicitem.uuid === DATA_CHARAC_ID) {
           setReadCharacteristic(characteristicitem);
@@ -334,10 +329,7 @@ export default function useBle() {
     if (device && !isSubscribed) {
       setIsSubscribed(true);
 
-      console.log(
-        'my monito character',
-        device?.monitorCharacteristicForService,
-      );
+      console.log('my monito character', device);
 
       if (device?.monitorCharacteristicForService) {
         device.monitorCharacteristicForService(
@@ -380,8 +372,10 @@ export default function useBle() {
   const sendData = (cmd: number, data: number[]): Promise<void> => {
     setIsLoadingCollectData(true);
 
+    console.log('my ref:', writeCharRef.current);
+
     return new Promise(async (resolve, reject) => {
-      if (!writeCharacteristic) {
+      if (!writeCharRef.current) {
         reject(new Error('No write characteristic available.'));
         return;
       }
@@ -398,10 +392,9 @@ export default function useBle() {
 
       const finalData = [...nowSendData, cs];
       const buffer = Buffer.from(finalData).toString('base64');
-      console.log({buffer});
 
       try {
-        await writeCharacteristic?.writeWithResponse(buffer);
+        await writeCharRef?.current?.writeWithResponse(buffer);
         console.log('Finished writing data');
         setIsLoadingCollectData(false);
         resolve();
@@ -525,7 +518,7 @@ export default function useBle() {
     data.push(startCollect.sampleDir);
     // console.log('5: ', JSON.stringify(data));
 
-    // console.log(val, ' ', JSON.stringify(data));
+    console.log(val, ' ', JSON.stringify(data));
 
     return sendData(0x01, data);
   };
@@ -595,6 +588,8 @@ export default function useBle() {
 
           updatedData[index] = (updatedData[index] || 0) | bit;
         });
+
+        console.log({updatedData});
 
         // Update state
         setResciveData(updatedData);
