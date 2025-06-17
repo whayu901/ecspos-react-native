@@ -5,6 +5,8 @@ import {Modal, View, Text, Button, BackHandler, Platform} from 'react-native';
 import Route from './src/routes';
 import {RootServiceModule} from './src/module';
 
+// Register the foreground service
+
 const App = () => {
   const [isJailbroken, setIsJailbroken] = useState(false);
 
