@@ -32,17 +32,11 @@ const useNotification = () => {
 
         ongoing: true,
 
-        actions: [
-          {
-            title: 'Stop',
-            pressAction: {
-              id: 'stop',
-            },
-          },
-        ],
+        progress: {
+          indeterminate: true, // ✅ this enables a spinning loading bar
+        },
       },
     });
-    console.log('hello wrold');
   };
 
   return {
