@@ -20,6 +20,7 @@ import {Buffer} from 'buffer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import {computeAmplitudeSpectrum} from '../../utils/SignalHelper';
+import {acquireWakeLock} from '../../module';
 
 type PermissionCallback = (result: boolean) => void;
 
@@ -589,8 +590,6 @@ export default function useBle() {
           updatedData[index] = (updatedData[index] || 0) | bit;
         });
 
-        console.log({updatedData});
-
         // Update state
         setResciveData(updatedData);
 
@@ -872,6 +871,8 @@ export default function useBle() {
   };
 
   const collectVibrationData = async () => {
+    await acquireWakeLock('backgroundBluetooth');
+
     setIsDisableStopBtn(false);
     setIsLoadingCollectData(true);
     await collectData(0, 3, 8, 3125);

@@ -14,6 +14,7 @@ import com.facebook.soloader.SoLoader
 import com.myapp.packages.DetailListPackage
 import com.myapp.packages.PrintPackage
 import com.myapp.packages.RootSecurityPackage
+import com.myapp.packages.WakeLockPackage
 
 class MainApplication : Application(), ReactApplication {
 
@@ -26,6 +27,7 @@ class MainApplication : Application(), ReactApplication {
               add(DetailListPackage());
               add(PrintPackage())
               add(RootSecurityPackage())
+              add(WakeLockPackage())
             }
 
         override fun getJSMainModuleName(): String = "index"
