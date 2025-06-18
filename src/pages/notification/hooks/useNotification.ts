@@ -29,9 +29,7 @@ const useNotification = () => {
       body: 'Bluetooth data is being collected in the background.',
       android: {
         channelId: 'ble-service',
-
         ongoing: true,
-
         progress: {
           indeterminate: true, // ✅ this enables a spinning loading bar
         },
