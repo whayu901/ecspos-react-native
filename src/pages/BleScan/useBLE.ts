@@ -19,8 +19,10 @@ import {PERMISSIONS} from 'react-native-permissions';
 import {Buffer} from 'buffer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import notifee from '@notifee/react-native';
 import {computeAmplitudeSpectrum} from '../../utils/SignalHelper';
-import {acquireWakeLock} from '../../module';
+import {acquireWakeLock, releaseWakeLock} from '../../module';
+import useNotification from '../notification/hooks/useNotification';
 
 type PermissionCallback = (result: boolean) => void;
 
@@ -29,7 +31,7 @@ const bleManager = new BleManager();
 const SERVICE_ID = 'b7ef1193-dc2e-4362-93d3-df429eb3ad10';
 const CMD_CHARAC_ID = '00ce7a72-ec08-473d-943e-81ec27fdc600';
 const DATA_CHARAC_ID = '00ce7a72-ec08-473d-943e-81ec27fdc5f2';
-const MAX_TIME = 1 * 60 * 1000; // 3 minutes in milliseconds
+const MAX_TIME = 3 * 1000; // 3 minutes in milliseconds
 
 interface BluetoothLowEnergyApi {
   requestPermissions(callback: PermissionCallback): Promise<void>;
@@ -73,6 +75,8 @@ export default function useBle() {
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [hasStarted, setHasStarted] = useState<boolean>(false);
   const intervalRef = useRef<any>(null);
+
+  const {startForegroundService} = useNotification();
 
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
@@ -843,6 +847,10 @@ export default function useBle() {
   const stopCollectTmpData = async () => {
     setIsDisableStopBtn(true);
 
+    await releaseWakeLock();
+    await notifee.stopForegroundService();
+    await notifee.cancelAllNotifications();
+
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
@@ -872,11 +880,12 @@ export default function useBle() {
 
   const collectVibrationData = async () => {
     await acquireWakeLock('backgroundBluetooth');
+    await startForegroundService();
 
     setIsDisableStopBtn(false);
     setIsLoadingCollectData(true);
-    await collectData(0, 3, 8, 3125);
-    // await collectData(2, 0, 0, 3125);
+    // await collectData(0, 3, 8, 3125);
+    await collectData(2, 0, 0, 3125);
     setMonitoredData(0);
     setReceivedData([]);
     // setWaveDataT([]);
@@ -887,9 +896,9 @@ export default function useBle() {
     setSpectrumeData([]);
     setPercentage(0);
 
-    // intervalRef.current = setInterval(() => {
-    //   setRunningTime(prev => prev + 1000);
-    // }, 1000);
+    intervalRef.current = setInterval(() => {
+      setRunningTime(prev => prev + 1000);
+    }, 1000);
   };
 
   const startTimer = async () => {

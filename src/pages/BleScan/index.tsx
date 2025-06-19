@@ -242,12 +242,9 @@ const HomeScreen = () => {
             <Button
               title="Stop Collect Data"
               onPress={stopCollectTmpData}
-              disabled={
-                isDisableStopBtn ||
-                isPaused ||
-                tempSpectrumeData.length < 3 ||
-                isLoadingCollectData
-              }
+              // disabled={
+              //   isDisableStopBtn || isPaused || tempSpectrumeData.length < 3
+              // }
               color={'red'}
             />
           </View>
