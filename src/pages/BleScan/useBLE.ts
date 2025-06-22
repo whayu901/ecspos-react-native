@@ -728,6 +728,8 @@ export default function useBle() {
     const waveDataFormatted = waveData[dir.toString()];
     const newfftData = computeAmplitudeSpectrum(waveDataFormatted);
 
+    console.log(`my data fft ${dir}:`, newfftData);
+
     setSpectrumeData(prevState => {
       const newState: any = [...prevState];
       newState[dir] = newfftData; // Replace or insert at the correct index
@@ -884,8 +886,8 @@ export default function useBle() {
 
     setIsDisableStopBtn(false);
     setIsLoadingCollectData(true);
-    // await collectData(0, 3, 8, 3125);
-    await collectData(2, 0, 0, 3125);
+    await collectData(0, 3, 8, 3125);
+    // await collectData(2, 0, 0, 3125);
     setMonitoredData(0);
     setReceivedData([]);
     // setWaveDataT([]);
