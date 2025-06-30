@@ -8,6 +8,7 @@ import {
   PermissionsAndroid,
   ToastAndroid,
 } from 'react-native';
+import EventEmitter from 'react-native/Libraries/vendor/emitter/EventEmitter';
 import {
   BleError,
   BleManager,
@@ -20,6 +21,8 @@ import {Buffer} from 'buffer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import notifee from '@notifee/react-native';
+
+import {storage} from '../../utils/storage';
 import {computeAmplitudeSpectrum} from '../../utils/SignalHelper';
 import {acquireWakeLock, releaseWakeLock} from '../../module';
 import useNotification from '../notification/hooks/useNotification';
@@ -31,7 +34,9 @@ const bleManager = new BleManager();
 const SERVICE_ID = 'b7ef1193-dc2e-4362-93d3-df429eb3ad10';
 const CMD_CHARAC_ID = '00ce7a72-ec08-473d-943e-81ec27fdc600';
 const DATA_CHARAC_ID = '00ce7a72-ec08-473d-943e-81ec27fdc5f2';
-const MAX_TIME = 3 * 1000; // 3 minutes in milliseconds
+const MAX_TIME = 30 * 1000; // 3 minutes in milliseconds
+
+const RECEIVED_DATA_KEY = 'ble_received_data';
 
 interface BluetoothLowEnergyApi {
   requestPermissions(callback: PermissionCallback): Promise<void>;
@@ -69,6 +74,8 @@ export default function useBle() {
   const totalCountRef = useRef<number | null>(null);
   const writeCharRef = useRef<any | null>(null);
 
+  console.log({writeCharRef});
+
   const statu = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80];
 
   const [runningTime, setRunningTime] = useState<number>(0);
@@ -77,23 +84,47 @@ export default function useBle() {
   const intervalRef = useRef<any>(null);
 
   const {startForegroundService} = useNotification();
+  const eventEmitter: any = new EventEmitter();
 
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
       'hardwareBackPress',
       () => {
-        stopTimer();
+        // stopTimer();
         return false;
       },
     );
 
     return () => {
-      stopTimer();
+      // stopTimer();
       backHandler.remove();
     };
   }, []);
 
+  useEffect(() => {
+    const saved = storage.getString(RECEIVED_DATA_KEY);
+    if (saved) {
+      try {
+        setReceivedData(JSON.parse(saved));
+      } catch (e) {
+        console.warn('Failed to parse stored receivedData:', e);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    const saved = storage.getBoolean('disableStop');
+    if (saved !== undefined) {
+      setIsDisableStopBtn(saved);
+    }
+  }, []);
+
+  useEffect(() => {
+    storage.set('disableStop', isDisableStopBtn);
+  }, [isDisableStopBtn]);
+
   const isFocused = useIsFocused();
+
   const reconnectToSavedDevice = async (device: Device) => {
     try {
       // Retrieve the saved device ID from AsyncStorage
@@ -167,14 +198,14 @@ export default function useBle() {
 
   useFocusEffect(
     useCallback(() => {
-      if (connectedDevice == null) {
+      if (!connectedDevice) {
         scanForDevices();
       }
 
       return () => {
-        stopCOllectDataAndDisconnected();
+        // stopCOllectDataAndDisconnected();
       };
-    }, []),
+    }, [connectedDevice]),
   );
 
   const requestPermissions = async (callback: PermissionCallback) => {
@@ -220,6 +251,7 @@ export default function useBle() {
         setIsScanningDevice(false);
         Alert.alert('Error Scanning Devices', String(error?.message));
       }
+
       if (
         device &&
         (device?.name?.includes('DT_ZB') ||
@@ -239,6 +271,51 @@ export default function useBle() {
       }
     });
   };
+
+  useEffect(() => {
+    const restoreWriteChar = async () => {
+      const saved = storage.getString('ble_write_char');
+      if (!saved) {
+        return;
+      }
+
+      try {
+        const {deviceId, serviceUUID, uuid} = JSON.parse(saved);
+        console.log({deviceId});
+
+        // Connect to device (autoConnect is safe here)
+        const device = await bleManager.connectToDevice(deviceId, {
+          autoConnect: true,
+        });
+        await device.discoverAllServicesAndCharacteristics();
+
+        const characteristics = await device.characteristicsForService(
+          serviceUUID,
+        );
+        const target = characteristics.find(c => c.uuid === uuid);
+
+        if (target) {
+          writeCharRef.current = target;
+          setWriteCharacteristic(target);
+
+          target.monitor((err, char) => {
+            if (err || !char?.value) {
+              return;
+            }
+
+            const raw = Buffer.from(char.value, 'base64');
+
+            _transIndexData(raw); // ✅ you’re back in business
+          });
+          console.log('✅ Restored writeCharRef from MMKV');
+        }
+      } catch (e) {
+        console.warn('⚠️ Failed to restore writeCharRef', e);
+      }
+    };
+
+    restoreWriteChar();
+  }, []);
 
   const connectToDevice = async (device: Device) => {
     try {
@@ -268,6 +345,15 @@ export default function useBle() {
         if (characteristicitem.uuid === CMD_CHARAC_ID) {
           setWriteCharacteristic(characteristicitem);
           writeCharRef.current = characteristicitem;
+
+          storage.set(
+            'ble_write_char',
+            JSON.stringify({
+              deviceId: characteristicitem.deviceID,
+              serviceUUID: characteristicitem.serviceUUID,
+              uuid: characteristicitem.uuid,
+            }),
+          );
         }
         if (characteristicitem.uuid === DATA_CHARAC_ID) {
           setReadCharacteristic(characteristicitem);
@@ -815,7 +901,16 @@ export default function useBle() {
 
       const data = Math.round(((tem === 0 ? velRms : tem) * 100) / 100);
 
-      setReceivedData(prevReceivedData => [...prevReceivedData, data]);
+      setReceivedData(prev => {
+        const updated = [...prev, data];
+        eventEmitter.emit('onData', updated);
+
+        console.log({updated});
+
+        // ✅ Save to MMKV
+        storage.set(RECEIVED_DATA_KEY, JSON.stringify(updated));
+        return updated;
+      });
 
       setCollectValue(String(data));
 
@@ -886,8 +981,8 @@ export default function useBle() {
 
     setIsDisableStopBtn(false);
     setIsLoadingCollectData(true);
-    await collectData(0, 3, 8, 3125);
-    // await collectData(2, 0, 0, 3125);
+    // await collectData(0, 3, 8, 3125);
+    await collectData(2, 0, 0, 3125);
     setMonitoredData(0);
     setReceivedData([]);
     // setWaveDataT([]);
@@ -977,5 +1072,10 @@ export default function useBle() {
     tempSpectrumeData,
     isLoadingCollectData,
     percentage,
+    onData(callback: (data: number[]) => void) {
+      const sub = (d: number[]) => callback(d);
+      eventEmitter.addListener('onData', sub);
+      return () => eventEmitter.removeListener('onData', sub);
+    },
   };
 }

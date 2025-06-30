@@ -29,7 +29,7 @@ const HomeScreen = () => {
     collectVibrationData,
     stopCollectTmpData,
     isDisableStopBtn,
-    // receivedData,
+    receivedData,
     disconnectDevice,
 
     collectValue,
@@ -44,9 +44,9 @@ const HomeScreen = () => {
     // pauseTimer,
     MAX_TIME,
     // spectrumeData,
-    tempSpectrumeData,
-    isLoadingCollectData,
-    percentage,
+    // tempSpectrumeData,
+    // isLoadingCollectData,
+    // percentage,
   } = useBle();
 
   const WIDTH = Dimensions.get('screen').width - 35;
@@ -114,7 +114,7 @@ const HomeScreen = () => {
           </Text>
         )}
 
-        {/* {receivedData.length !== 0 && (
+        {receivedData.length !== 0 && (
           <LineChart
             width={WIDTH}
             height={500}
@@ -151,8 +151,9 @@ const HomeScreen = () => {
               marginVertical: 8,
               borderRadius: 16,
             }}
-          /> */}
-        {isLoadingCollectData ? (
+          />
+        )}
+        {/* {isLoadingCollectData ? (
           <View>
             <Text>{`Sedang mengambil data ${percentage}`}</Text>
           </View>
@@ -199,7 +200,7 @@ const HomeScreen = () => {
           />
         ) : (
           <View />
-        )}
+        )} */}
       </ScrollView>
       <View style={styles.buttonContainer}>
         <Button
