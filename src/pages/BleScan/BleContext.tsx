@@ -7,9 +7,38 @@ export interface BleContextType {
   receivedDataRef: React.MutableRefObject<number[]>;
   setReceivedData: React.Dispatch<React.SetStateAction<number[]>>;
   // Add anything else your context exposes:
-  connectToDevice?: (device: Device) => Promise<void>;
+  connectToDevice: (device: any) => Promise<void>;
   _transIndexData?: (dp: any) => void;
-  // etc.
+  requestPermissions: (value: any) => void;
+  scanForDevices: () => void;
+  allDevices: Device[];
+  isScanningDevice: boolean;
+
+  connectedDevice: Device | null;
+  disconnectDevice: (deviceId: string) => Promise<void>;
+
+  // Monitoring
+  monitoredData: number;
+
+  // Data collection
+  collectVibrationData: () => Promise<void>;
+  stopCollectTmpData: () => Promise<void>;
+  resumeCollectData: () => Promise<void>;
+  pauseCollectTempData: () => Promise<void>;
+  isPaused: boolean;
+
+  // State flags
+  isDisableStopBtn: boolean;
+  collectValue: string;
+
+  // Shared data
+
+  // Timer utilities
+  formatTime: (milliseconds: number) => string;
+  runningTime: number;
+  MAX_TIME: number;
+  widgetFrom: string;
+  setWidgetFrom: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export const BleContext = createContext<BleContextType | null>(null);

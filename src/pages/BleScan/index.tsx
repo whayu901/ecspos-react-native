@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React from 'react';
+import React, {useEffect} from 'react';
 import {
   View,
   Text,
@@ -12,9 +12,9 @@ import {
 import {LineChart} from 'react-native-chart-kit';
 
 import styles from './styles';
-import useBle from './useBLE';
+// import useBle from './useBLE';
 import {Device} from 'react-native-ble-plx';
-// import {useBleContext} from './BleContext';
+import {useBleContext} from './BleContext';
 
 const HomeScreen = () => {
   const {
@@ -44,16 +44,26 @@ const HomeScreen = () => {
     runningTime,
     // pauseTimer,
     MAX_TIME,
+    setWidgetFrom,
+
     // spectrumeData,
     // tempSpectrumeData,
     // isLoadingCollectData,
     // percentage,
     receivedDataRef,
-  } = useBle();
+  } = useBleContext();
 
   // const {receivedDataRef} = useBleContext();
 
-  // console.log('📈 UI sees receivedData.length =', receivedData.length);
+  useEffect(() => {
+    setWidgetFrom('bluetooth');
+    return () => setWidgetFrom('home'); // When you navigate away!
+  }, [setWidgetFrom]);
+
+  console.log(
+    '📈 UI sees receivedData.length =',
+    receivedDataRef.current.length,
+  );
 
   const WIDTH = Dimensions.get('screen').width - 35;
 

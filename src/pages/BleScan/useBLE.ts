@@ -74,15 +74,17 @@ export default function useBle() {
   const totalCountRef = useRef<number | null>(null);
   const writeCharRef = useRef<any | null>(null);
   const notifyCharRef = useRef<Characteristic | null>(null);
+  const backgroundStartTimeRef = useRef<number | null>(null);
 
   const statu = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80];
 
   const [runningTime, setRunningTime] = useState<number>(0);
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [hasStarted, setHasStarted] = useState<boolean>(false);
+  const [widgetFrom, setWidgetFrom] = useState<string>('home');
+
   const intervalRef = useRef<any>(null);
   const receivedDataRef = useRef<number[]>([]);
-  const isSubscribedRef = useRef(false);
 
   const {startForegroundService} = useNotification();
   const eventEmitter: any = new EventEmitter();
@@ -103,6 +105,8 @@ export default function useBle() {
   // }, []);
 
   useEffect(() => {
+    if (widgetFrom !== 'bluetooth') return;
+
     const saved = storage.getString(RECEIVED_DATA_KEY);
     if (saved) {
       try {
@@ -273,6 +277,11 @@ export default function useBle() {
   };
 
   useEffect(() => {
+    if (widgetFrom !== 'bluetooth') {
+      console.log('⏭️ Skipping restoreWriteChar, widgetFrom:', widgetFrom);
+      return;
+    }
+
     const restoreWriteChar = async () => {
       const saved = storage.getString('ble_write_char');
       if (!saved) return;
@@ -408,6 +417,23 @@ export default function useBle() {
       ToastAndroid.show(
         'Connection with device is Disconnected',
         ToastAndroid.SHORT,
+      );
+
+      Alert.alert(
+        'Connection Lost',
+        'Your device is out of range or disconnected. Stopping data collection.',
+        [
+          {
+            text: 'OK',
+            onPress: async () => {
+              await stopCollectTmpData();
+              if (connectedDevice) {
+                await disconnectDevice(connectedDevice.id);
+              }
+            },
+          },
+        ],
+        {cancelable: false},
       );
       return;
     } else if (!characteristic) {
@@ -989,8 +1015,27 @@ export default function useBle() {
 
   const backgroundTask = async () => {
     console.log('[Background] BLE monitor protection running...');
+
     while (BackgroundService.isRunning()) {
-      await sleep(5000); // Optional heartbeat, does not resend collectData
+      const now = Date.now();
+
+      if (
+        backgroundStartTimeRef.current &&
+        now - backgroundStartTimeRef.current >= MAX_TIME
+      ) {
+        console.log('[Background] Max time reached. Stopping collection.');
+
+        await stopCollectTmpData(); // Safe: your cleanup method
+        if (connectedDevice) {
+          await disconnectDevice(connectedDevice.id);
+        }
+
+        await BackgroundService.stop();
+        break; // Exit loop
+      }
+
+      console.log('[Background] Heartbeat...');
+      await sleep(30000);
     }
   };
 
@@ -998,6 +1043,8 @@ export default function useBle() {
     new Promise(resolve => setTimeout(resolve, time));
 
   const startBackgroundTask = async () => {
+    backgroundStartTimeRef.current = Date.now();
+
     await BackgroundService.start(backgroundTask, {
       taskName: 'BLE Streaming',
       taskTitle: 'Collecting Vibration Data',
@@ -1089,6 +1136,8 @@ export default function useBle() {
     isLoadingCollectData,
     percentage,
     receivedDataRef,
+    setWidgetFrom,
+    widgetFrom,
     onData(callback: (data: number[]) => void) {
       const sub = (d: number[]) => callback(d);
       eventEmitter.addListener('onData', sub);

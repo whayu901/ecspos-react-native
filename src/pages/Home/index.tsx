@@ -9,6 +9,8 @@
 import React, {useCallback, useState} from 'react';
 
 import {
+  Button,
+  // Button,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -22,12 +24,17 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import {useBleContext} from '../../pages/BleScan/BleContext';
+
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
   const navigation: any = useNavigation();
   const route: any = useRoute();
 
   const [data, setData] = useState('Initial Data');
+
+  const {stopCollectTmpData, disconnectDevice, connectedDevice, setWidgetFrom} =
+    useBleContext();
 
   // Handle data when coming back from Screen B
   useFocusEffect(
@@ -38,6 +45,15 @@ function App(): React.JSX.Element {
       }
     }, [route.params?.updatedData]),
   );
+
+  const handleStopAndDisconnect = async () => {
+    setWidgetFrom('home');
+
+    await stopCollectTmpData();
+    if (connectedDevice) {
+      await disconnectDevice(connectedDevice.id);
+    }
+  };
 
   return (
     <SafeAreaView>
@@ -154,6 +170,12 @@ function App(): React.JSX.Element {
             <Text style={{color: 'black'}}>{'>'}</Text>
           </TouchableOpacity>
         </View>
+
+        {connectedDevice && (
+          <View style={{marginTop: 20, marginHorizontal: 20}}>
+            <Button title="Logout" onPress={handleStopAndDisconnect} />
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
