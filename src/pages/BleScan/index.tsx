@@ -14,6 +14,7 @@ import {LineChart} from 'react-native-chart-kit';
 import styles from './styles';
 import useBle from './useBLE';
 import {Device} from 'react-native-ble-plx';
+// import {useBleContext} from './BleContext';
 
 const HomeScreen = () => {
   const {
@@ -29,7 +30,7 @@ const HomeScreen = () => {
     collectVibrationData,
     stopCollectTmpData,
     isDisableStopBtn,
-    receivedData,
+    // receivedData,
     disconnectDevice,
 
     collectValue,
@@ -47,7 +48,12 @@ const HomeScreen = () => {
     // tempSpectrumeData,
     // isLoadingCollectData,
     // percentage,
+    receivedDataRef,
   } = useBle();
+
+  // const {receivedDataRef} = useBleContext();
+
+  // console.log('📈 UI sees receivedData.length =', receivedData.length);
 
   const WIDTH = Dimensions.get('screen').width - 35;
 
@@ -114,15 +120,19 @@ const HomeScreen = () => {
           </Text>
         )}
 
-        {receivedData.length !== 0 && (
+        {receivedDataRef.current.length !== 0 && (
           <LineChart
             width={WIDTH}
             height={500}
             withInnerLines={false}
             data={{
-              labels: receivedData.map((_, index) => `${index + 1}`), // Dynamic labels per second
+              labels: receivedDataRef.current.map((_, index) => `${index + 1}`), // Dynamic labels per second
               datasets: [
-                {data: receivedData, color: () => 'blue', strokeWidth: 2},
+                {
+                  data: receivedDataRef.current,
+                  color: () => 'blue',
+                  strokeWidth: 2,
+                },
               ],
             }}
             chartConfig={{

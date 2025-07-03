@@ -1,5 +1,5 @@
 import React from 'react';
-import {NavigationContainer} from '@react-navigation/native';
+
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 
 import NFCPage from '../pages/NFC';
@@ -12,29 +12,26 @@ import NotificationScreen from '../pages/notification';
 import ChartScreen from '../pages/Chart';
 import ChartRealtimeScreen from '../pages/ChartRealtime';
 
+// import NewBluettoth from '../pages/newBluetooth';
+
 const RoutePages = () => {
   const Stack = createNativeStackNavigator();
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="HomePage">
-        <Stack.Screen name="HomePage" component={HomePage} />
-        <Stack.Screen name="NFC" component={NFCPage} />
-        <Stack.Screen name="QRCode" component={QRCodePage} />
-        <Stack.Screen name="PermissionNearby" component={PermissionNearby} />
-        <Stack.Screen name="Camera" component={Camera} />
-        <Stack.Screen name="BleScreen" component={BleScreen} />
-        <Stack.Screen
-          name="NotificationScreen"
-          component={NotificationScreen}
-        />
-        <Stack.Screen name="ChartScreen" component={ChartScreen} />
-        <Stack.Screen
-          name="ChartRealtimeScreen"
-          component={ChartRealtimeScreen}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <Stack.Navigator initialRouteName="HomePage">
+      <Stack.Screen name="HomePage" component={HomePage} />
+      <Stack.Screen name="NFC" component={NFCPage} />
+      <Stack.Screen name="QRCode" component={QRCodePage} />
+      <Stack.Screen name="PermissionNearby" component={PermissionNearby} />
+      <Stack.Screen name="Camera" component={Camera} />
+      <Stack.Screen name="BleScreen" component={BleScreen} />
+      <Stack.Screen name="NotificationScreen" component={NotificationScreen} />
+      <Stack.Screen name="ChartScreen" component={ChartScreen} />
+      <Stack.Screen
+        name="ChartRealtimeScreen"
+        component={ChartRealtimeScreen}
+      />
+    </Stack.Navigator>
   );
 };
 

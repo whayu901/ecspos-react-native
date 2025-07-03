@@ -1,9 +1,11 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, {useEffect, useState} from 'react';
 import {Modal, View, Text, Button, BackHandler, Platform} from 'react-native';
+import {NavigationContainer} from '@react-navigation/native';
 
 import Route from './src/routes';
 import {RootServiceModule} from './src/module';
+import {BleProvider} from './src/pages/BleScan/BleContext';
 
 // Register the foreground service
 
@@ -34,8 +36,10 @@ const App = () => {
   };
 
   return (
-    <>
-      <Route />
+    <BleProvider>
+      <NavigationContainer>
+        <Route />
+      </NavigationContainer>
       <Modal visible={isJailbroken} transparent={true} animationType="fade">
         <View
           style={{
@@ -59,7 +63,7 @@ const App = () => {
           </View>
         </View>
       </Modal>
-    </>
+    </BleProvider>
   );
 };
 

@@ -15,11 +15,11 @@ import {
   Characteristic,
   Device,
 } from 'react-native-ble-plx';
+import BackgroundService from 'react-native-background-actions';
 import DeviceInfo from 'react-native-device-info';
 import {PERMISSIONS} from 'react-native-permissions';
 import {Buffer} from 'buffer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import notifee from '@notifee/react-native';
 
 import {storage} from '../../utils/storage';
@@ -73,8 +73,7 @@ export default function useBle() {
 
   const totalCountRef = useRef<number | null>(null);
   const writeCharRef = useRef<any | null>(null);
-
-  console.log({writeCharRef});
+  const notifyCharRef = useRef<Characteristic | null>(null);
 
   const statu = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80];
 
@@ -82,24 +81,26 @@ export default function useBle() {
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [hasStarted, setHasStarted] = useState<boolean>(false);
   const intervalRef = useRef<any>(null);
+  const receivedDataRef = useRef<number[]>([]);
+  const isSubscribedRef = useRef(false);
 
   const {startForegroundService} = useNotification();
   const eventEmitter: any = new EventEmitter();
 
-  useEffect(() => {
-    const backHandler = BackHandler.addEventListener(
-      'hardwareBackPress',
-      () => {
-        // stopTimer();
-        return false;
-      },
-    );
+  // useEffect(() => {
+  //   const backHandler = BackHandler.addEventListener(
+  //     'hardwareBackPress',
+  //     () => {
+  //       // stopTimer();
+  //       return false;
+  //     },
+  //   );
 
-    return () => {
-      // stopTimer();
-      backHandler.remove();
-    };
-  }, []);
+  //   return () => {
+  //     // stopTimer();
+  //     backHandler.remove();
+  //   };
+  // }, []);
 
   useEffect(() => {
     const saved = storage.getString(RECEIVED_DATA_KEY);
@@ -122,8 +123,6 @@ export default function useBle() {
   useEffect(() => {
     storage.set('disableStop', isDisableStopBtn);
   }, [isDisableStopBtn]);
-
-  const isFocused = useIsFocused();
 
   const reconnectToSavedDevice = async (device: Device) => {
     try {
@@ -188,25 +187,26 @@ export default function useBle() {
   //   };
   // }, [connectedDevice?.id]);
 
-  const stopCOllectDataAndDisconnected = useCallback(async () => {
-    if (idDevice) {
-      // await collectData(4, 0, 0, 1000);
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     const checkConnection = async () => {
+  //       if (!connectedDevice) {
+  //         const savedRaw = await AsyncStorage.getItem('my-connected-device-id');
+  //         const saved = JSON.parse(savedRaw || '{}');
 
-      disconnectDevice(idDevice);
-    }
-  }, [idDevice]);
+  //         const isConnected = await bleManager.isDeviceConnected(saved?.id);
+  //         if (!isConnected) {
+  //           console.log('🔌 Not connected, scanning...');
+  //           scanForDevices();
+  //         } else {
+  //           console.log('✅ Already connected, no rescan needed.');
+  //         }
+  //       }
+  //     };
 
-  useFocusEffect(
-    useCallback(() => {
-      if (!connectedDevice) {
-        scanForDevices();
-      }
-
-      return () => {
-        // stopCOllectDataAndDisconnected();
-      };
-    }, [connectedDevice]),
-  );
+  //     checkConnection();
+  //   }, [connectedDevice]),
+  // );
 
   const requestPermissions = async (callback: PermissionCallback) => {
     const apiLevel = await DeviceInfo.getApiLevel();
@@ -275,39 +275,45 @@ export default function useBle() {
   useEffect(() => {
     const restoreWriteChar = async () => {
       const saved = storage.getString('ble_write_char');
-      if (!saved) {
-        return;
-      }
+      if (!saved) return;
 
       try {
         const {deviceId, serviceUUID, uuid} = JSON.parse(saved);
         console.log({deviceId});
 
-        // Connect to device (autoConnect is safe here)
-        const device = await bleManager.connectToDevice(deviceId, {
-          autoConnect: true,
-        });
-        await device.discoverAllServicesAndCharacteristics();
+        const stillConnected = await bleManager.isDeviceConnected(deviceId);
 
-        const characteristics = await device.characteristicsForService(
+        let device;
+
+        if (stillConnected) {
+          console.log('✅ Device already connected, skipping connectToDevice.');
+          device = await bleManager.devices([deviceId]).then(devs => devs[0]);
+        } else {
+          console.log('🔌 Device not connected, reconnecting...');
+          device = await bleManager.connectToDevice(deviceId, {
+            autoConnect: true,
+          });
+          setConnectedDevice(device);
+        }
+
+        await device?.discoverAllServicesAndCharacteristics();
+        const characteristics = await device?.characteristicsForService(
           serviceUUID,
         );
-        const target = characteristics.find(c => c.uuid === uuid);
+        const target = characteristics?.find(c => c.uuid === uuid);
 
         if (target) {
           writeCharRef.current = target;
           setWriteCharacteristic(target);
 
-          target.monitor((err, char) => {
-            if (err || !char?.value) {
-              return;
-            }
+          // Safe monitor with isSubscribedRef if needed
+          device.monitorCharacteristicForService(
+            serviceUUID,
+            uuid,
+            onDetectData,
+          );
 
-            const raw = Buffer.from(char.value, 'base64');
-
-            _transIndexData(raw); // ✅ you’re back in business
-          });
-          console.log('✅ Restored writeCharRef from MMKV');
+          console.log('✅ Restored writeCharRef & monitor attached');
         }
       } catch (e) {
         console.warn('⚠️ Failed to restore writeCharRef', e);
@@ -492,38 +498,7 @@ export default function useBle() {
       } catch (error) {
         reject(new Error('Error writing data to characteristic: ' + error));
       }
-
-      // writeCharacteristic
-      //   ?.writeWithResponse(buffer)
-      //   .then(() => {
-      //     console.log('Finished writing data');
-      //     setIsLoadingCollectData(false);
-      //     resolve();
-      //   })
-      //   .catch((err: any) =>
-      //     reject(new Error('Error writing data to characteristic: ' + err)),
-      //   );
     });
-
-    // const mtuSize = 20; // Adjust based on your device's MTU
-    // const chunkedData = [];
-    // for (let i = 0; i < finalData.length; i += mtuSize) {
-    //   chunkedData.push(finalData.slice(i, i + mtuSize));
-    // }
-
-    // for (const chunk of chunkedData) {
-    //   const buffer = Buffer.from(chunk);
-    //   try {
-    //     await writeCharacteristic.writeWithResponse(
-    //       buffer.toString('base64'),
-    //     );
-    //     console.log('Chunk written successfully:', chunk);
-    //   } catch (err) {
-    //     console.error('Error writing chunk:', chunk, err);
-    //     break;
-    //   }
-    // }
-    // });
   };
 
   const collectData = (
@@ -873,6 +848,10 @@ export default function useBle() {
     }
   };
 
+  const backgroundTaskTransferIndex = async (dp: any) => {
+    _transIndexData(dp);
+  };
+
   const _transIndexData = (dp: any) => {
     if (dp.length < 35) {
       console.log('The index data received is too short to process.');
@@ -900,17 +879,25 @@ export default function useBle() {
       // setReceivedData(prevReceivedData => [...prevReceivedData, tem]);
 
       const data = Math.round(((tem === 0 ? velRms : tem) * 100) / 100);
+      // ✅ Safe push to ref
+      // if (!receivedDataRef.current) {
+      //   console.log('hello world');
+      //   receivedDataRef.current = [];
+      // }
 
-      setReceivedData(prev => {
-        const updated = [...prev, data];
-        eventEmitter.emit('onData', updated);
+      console.log(receivedDataRef.current);
 
-        console.log({updated});
+      console.log('🟢 Before push:', receivedDataRef.current.length);
 
-        // ✅ Save to MMKV
-        storage.set(RECEIVED_DATA_KEY, JSON.stringify(updated));
-        return updated;
-      });
+      receivedDataRef.current.push(data);
+
+      console.log('✅ After push:', receivedDataRef.current.length);
+
+      // ✅ Force state update to trigger re-render
+      setReceivedData([...receivedDataRef.current]);
+
+      // ✅ Persist to MMKV or AsyncStorage
+      storage.set(RECEIVED_DATA_KEY, JSON.stringify(receivedDataRef.current));
 
       setCollectValue(String(data));
 
@@ -945,6 +932,7 @@ export default function useBle() {
     setIsDisableStopBtn(true);
 
     await releaseWakeLock();
+    await stopBackgroundTask();
     await notifee.stopForegroundService();
     await notifee.cancelAllNotifications();
 
@@ -978,6 +966,7 @@ export default function useBle() {
   const collectVibrationData = async () => {
     await acquireWakeLock('backgroundBluetooth');
     await startForegroundService();
+    await startBackgroundTask();
 
     setIsDisableStopBtn(false);
     setIsLoadingCollectData(true);
@@ -996,6 +985,33 @@ export default function useBle() {
     intervalRef.current = setInterval(() => {
       setRunningTime(prev => prev + 1000);
     }, 1000);
+  };
+
+  const backgroundTask = async () => {
+    console.log('[Background] BLE monitor protection running...');
+    while (BackgroundService.isRunning()) {
+      await sleep(5000); // Optional heartbeat, does not resend collectData
+    }
+  };
+
+  const sleep = (time: number) =>
+    new Promise(resolve => setTimeout(resolve, time));
+
+  const startBackgroundTask = async () => {
+    await BackgroundService.start(backgroundTask, {
+      taskName: 'BLE Streaming',
+      taskTitle: 'Collecting Vibration Data',
+      taskDesc: 'Streaming in background',
+      taskIcon: {
+        name: 'ic_launcher',
+        type: 'mipmap',
+      },
+    });
+  };
+
+  const stopBackgroundTask = async () => {
+    await BackgroundService.stop();
+    console.log('🛑 Stopped BLE streaming background');
   };
 
   const startTimer = async () => {
@@ -1072,6 +1088,7 @@ export default function useBle() {
     tempSpectrumeData,
     isLoadingCollectData,
     percentage,
+    receivedDataRef,
     onData(callback: (data: number[]) => void) {
       const sub = (d: number[]) => callback(d);
       eventEmitter.addListener('onData', sub);
