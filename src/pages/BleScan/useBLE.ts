@@ -75,6 +75,7 @@ export default function useBle() {
   const writeCharRef = useRef<any | null>(null);
   const notifyCharRef = useRef<Characteristic | null>(null);
   const backgroundStartTimeRef = useRef<number | null>(null);
+  const isManualDisconnectRef = useRef(false);
 
   const statu = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80];
 
@@ -389,13 +390,13 @@ export default function useBle() {
     try {
       const connectedDevices = await bleManager.connectedDevices([SERVICE_ID]);
 
-      console.log(JSON.stringify(connectedDevices));
-
       const device = connectedDevices.find((dev: any) => dev.id === deviceId);
 
       if (device) {
         setConnectedDevice(null);
         setIsSubscribed(false);
+
+        isManualDisconnectRef.current = true;
 
         await bleManager.cancelDeviceConnection(deviceId);
         // await AsyncStorage.removeItem('my-connected-device-id');
@@ -414,27 +415,29 @@ export default function useBle() {
     characteristic: Characteristic | any,
   ) => {
     if (error) {
-      ToastAndroid.show(
-        'Connection with device is Disconnected',
-        ToastAndroid.SHORT,
-      );
-
-      Alert.alert(
-        'Connection Lost',
-        'Your device is out of range or disconnected. Stopping data collection.',
-        [
-          {
-            text: 'OK',
-            onPress: async () => {
-              await stopCollectTmpData();
-              if (connectedDevice) {
-                await disconnectDevice(connectedDevice.id);
-              }
+      if (isManualDisconnectRef.current) {
+        // This was a normal user disconnect
+        ToastAndroid.show('Device disconnected by user', ToastAndroid.SHORT);
+        isManualDisconnectRef.current = false; // reset it
+      } else {
+        // Treat as out-of-range disconnect
+        Alert.alert(
+          'Connection Lost',
+          'Device is out of range! Stopping data collection.',
+          [
+            {
+              text: 'OK',
+              onPress: async () => {
+                await stopCollectTmpData();
+                if (connectedDevice) {
+                  await disconnectDevice(connectedDevice.id);
+                }
+              },
             },
-          },
-        ],
-        {cancelable: false},
-      );
+          ],
+          {cancelable: false},
+        );
+      }
       return;
     } else if (!characteristic) {
       ToastAndroid.show('No Characteristic Found', ToastAndroid.SHORT);
@@ -968,6 +971,8 @@ export default function useBle() {
     }
 
     await collectData(4, 0, 0, 1000);
+
+    ToastAndroid.show('Data Has been Saved', ToastAndroid.SHORT);
   };
 
   const pauseCollectTempData = async () => {
