@@ -1,37 +1,35 @@
 buildscript {
-    ext {
-        buildToolsVersion = "34.0.0"
-        minSdkVersion = 21
-        compileSdkVersion = 34
-        targetSdkVersion = 34
-        ndkVersion = "25.1.8937393"
-        kotlinVersion = "1.8.0"
+  ext {
+    buildToolsVersion = "35.0.0"
+    minSdkVersion = 21
+    compileSdkVersion = 35
+    targetSdkVersion = 35
+    ndkVersion = "25.1.8937393"
+    kotlinVersion = "1.8.0"
+  }
+  repositories {
+    google()
+    mavenCentral()
+    maven {
+      url "https://jitpack.io"
+      content {
+        includeGroup "com.github.react-native-community"
+      }
     }
+  }
+  dependencies {
+    classpath("com.android.tools.build:gradle:8.6.0") // ✅ Updated
+    classpath("com.facebook.react:react-native-gradle-plugin")
+    classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.0")
+  }
+
+  allprojects {
     repositories {
-        google()
-        mavenCentral()
-
-        maven {
-        url "https://jitpack.io"
-        content {
-            includeGroup "com.github.react-native-community"
-            // includeModule "react-native-bluetooth-escpos-printer", "2.3.0"
-        }
+      maven {
+        url("${project(':react-native-background-fetch').projectDir}/libs")
+      }
     }
-    }
-    dependencies {
-        classpath("com.android.tools.build:gradle")
-        classpath("com.facebook.react:react-native-gradle-plugin")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
-    }
-
-    allprojects {
-        repositories {
-            maven {
-                url("${project(':react-native-background-fetch').projectDir}/libs")
-            }
-        }
-    }
+  }
 }
 
 apply plugin: "com.facebook.react.rootproject"
