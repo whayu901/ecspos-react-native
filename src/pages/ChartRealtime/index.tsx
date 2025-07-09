@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {FullscreenScrollableChart} from '../../components/FullscreenScrollableChart';
+import {FullscreenSkiaScrollableChartWithCrosshair} from '../../components/FullscreenScrollableChart';
 
 export default function ChartScreen() {
   const [lineData, setLineData] = useState<number[]>([]);
@@ -10,8 +10,8 @@ export default function ChartScreen() {
   }, []);
 
   return (
-    <FullscreenScrollableChart
-      lines={[lineData]} // ✅ Pass as array of arrays, even if only one line!
+    <FullscreenSkiaScrollableChartWithCrosshair
+      data={[lineData]} // ✅ Pass as array of arrays, even if only one line!
       lineColors={['blue']}
       showThresholds={true}
       minThreshold={30}
