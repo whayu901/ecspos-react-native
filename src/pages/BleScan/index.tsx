@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-native/no-inline-styles */
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {
   View,
   Text,
@@ -15,6 +16,7 @@ import styles from './styles';
 // import useBle from './useBLE';
 import {Device} from 'react-native-ble-plx';
 import {useBleContext} from './BleContext';
+import {FullscreenEChartsChart} from '../../components/FullscreenScrollableChart';
 
 const HomeScreen = () => {
   const {
@@ -45,12 +47,12 @@ const HomeScreen = () => {
     // pauseTimer,
     MAX_TIME,
     setWidgetFrom,
+    spectrumeData,
 
-    // spectrumeData,
-    // tempSpectrumeData,
-    // isLoadingCollectData,
-    // percentage,
-    receivedDataRef,
+    tempSpectrumeData,
+    isLoadingCollectData,
+    percentage,
+    // receivedDataRef,
   } = useBleContext();
 
   // const {receivedDataRef} = useBleContext();
@@ -60,13 +62,6 @@ const HomeScreen = () => {
     return () => setWidgetFrom('home'); // When you navigate away!
   }, [setWidgetFrom]);
 
-  console.log(
-    '📈 UI sees receivedData.length =',
-    receivedDataRef.current.length,
-  );
-
-  const WIDTH = Dimensions.get('screen').width - 35;
-
   const onScanDevices = async () => {
     requestPermissions((isGranted: boolean) => {
       if (isGranted) {
@@ -75,62 +70,71 @@ const HomeScreen = () => {
     });
   };
 
+  const getLabelIndex = useCallback((index: number) => {
+    switch (index) {
+      case 0:
+        return 'X';
+      case 1:
+        return 'Y';
+      case 2:
+        return 'Z';
+      default:
+        return '';
+    }
+  }, []);
+
   return (
-    <>
-      <ScrollView style={styles.container}>
-        {isScanningDevice && (
-          <View style={styles.loaderContainer}>
-            <ActivityIndicator size={'small'} />
-          </View>
-        )}
-        {allDevices?.map((device: Device) => (
-          <View style={styles.deviceItemContainer}>
-            <View style={styles.deviceItem}>
-              <Text>{device?.name}</Text>
-            </View>
-            <View style={styles.connectButtonContainer}>
-              <Button
-                title={
-                  connectedDevice?.id === device.id ? 'Disconnected' : 'Connect'
-                }
-                onPress={() =>
-                  connectedDevice?.id === device.id
-                    ? disconnectDevice(device.id)
-                    : connectToDevice(device)
-                }
-              />
-            </View>
-          </View>
-        ))}
-        {!!connectedDevice && (
-          <View style={styles.connectedDeviceContainer}>
-            <Text style={styles.title}>Connected Device</Text>
-            <Text
-              style={
-                styles.data
-              }>{`Device Name: ${connectedDevice?.name}`}</Text>
-            <Text
-              style={styles.data}>{`Device ID: ${connectedDevice?.id}`}</Text>
-            <Text>{`Data: ${monitoredData}`}</Text>
-
-            <TouchableOpacity onPress={() => connectToDevice(connectedDevice)}>
-              <Text>Hello world</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        <View style={{marginBottom: 15}}>
-          <Text style={{paddingVertical: 10}}>Realtime Value:</Text>
-          <Text>{collectValue}</Text>
+    <ScrollView style={styles.container}>
+      {isScanningDevice && (
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size={'small'} />
         </View>
+      )}
+      {allDevices?.map((device: Device) => (
+        <View style={styles.deviceItemContainer}>
+          <View style={styles.deviceItem}>
+            <Text>{device?.name}</Text>
+          </View>
+          <View style={styles.connectButtonContainer}>
+            <Button
+              title={
+                connectedDevice?.id === device.id ? 'Disconnected' : 'Connect'
+              }
+              onPress={() =>
+                connectedDevice?.id === device.id
+                  ? disconnectDevice(device.id)
+                  : connectToDevice(device)
+              }
+            />
+          </View>
+        </View>
+      ))}
+      {!!connectedDevice && (
+        <View style={styles.connectedDeviceContainer}>
+          <Text style={styles.title}>Connected Device</Text>
+          <Text
+            style={styles.data}>{`Device Name: ${connectedDevice?.name}`}</Text>
+          <Text style={styles.data}>{`Device ID: ${connectedDevice?.id}`}</Text>
+          <Text>{`Data: ${monitoredData}`}</Text>
 
-        {runningTime > 0 && (
-          <Text style={{fontSize: 32, marginBottom: 20}}>
-            {formatTime(runningTime)}
-          </Text>
-        )}
+          <TouchableOpacity onPress={() => connectToDevice(connectedDevice)}>
+            <Text>Hello world</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
-        {receivedDataRef.current.length !== 0 && (
+      <View style={{marginBottom: 15}}>
+        <Text style={{paddingVertical: 10}}>Realtime Value:</Text>
+        <Text>{collectValue}</Text>
+      </View>
+
+      {runningTime > 0 && (
+        <Text style={{fontSize: 32, marginBottom: 20}}>
+          {formatTime(runningTime)}
+        </Text>
+      )}
+
+      {/* {receivedDataRef.current.length !== 0 && (
           <LineChart
             width={WIDTH}
             height={500}
@@ -172,56 +176,73 @@ const HomeScreen = () => {
               borderRadius: 16,
             }}
           />
-        )}
-        {/* {isLoadingCollectData ? (
-          <View>
-            <Text>{`Sedang mengambil data ${percentage}`}</Text>
-          </View>
-        ) : tempSpectrumeData.length === 3 ? (
-          <LineChart
-            width={WIDTH}
-            height={500}
-            withHorizontalLabels={false}
-            withInnerLines={false}
-            data={{
-              labels: tempSpectrumeData.map((_, i) => `${i + 1}`), // Dynamic labels per second
-              datasets: tempSpectrumeData.map((data, index) => ({
-                data,
-                color: () => ['blue', 'green', 'red'][index], // Color per line
-                strokeWidth: 2,
-              })),
-            }}
-            chartConfig={{
-              backgroundColor: '#e26a00',
-              backgroundGradientFrom: '#fb8c00',
-              backgroundGradientTo: '#ffa726',
-              decimalPlaces: 1,
-              color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-              labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-              style: {
-                borderRadius: 16,
-              },
-              propsForDots: {
-                r: '6',
-                strokeWidth: '2',
-                stroke: '#ffa726',
-              },
-
-              // Format y-axis labels to show temperature in °C
-              formatYLabel: value => `${value}°C`,
-            }}
-            bezier
-            yAxisLabel=""
-            yAxisSuffix="°C"
-            style={{
-              marginVertical: 8,
-              borderRadius: 16,
-            }}
-          />
-        ) : (
-          <View />
         )} */}
-      </ScrollView>
+      {isLoadingCollectData ? (
+        <View>
+          <Text>{`Sedang mengambil data ${percentage}`}</Text>
+        </View>
+      ) : tempSpectrumeData.length === 3 ? (
+        // <LineChart
+        //   width={WIDTH}
+        //   height={500}
+        //   withHorizontalLabels={false}
+        //   withInnerLines={false}
+        //   data={{
+        //     labels: tempSpectrumeData.map((_, i) => `${i + 1}`), // Dynamic labels per second
+        //     datasets: tempSpectrumeData.map((data, index) => ({
+        //       data,
+        //       color: () => ['blue', 'green', 'red'][index], // Color per line
+        //       strokeWidth: 2,
+        //     })),
+        //   }}
+        //   chartConfig={{
+        //     backgroundColor: '#e26a00',
+        //     backgroundGradientFrom: '#fb8c00',
+        //     backgroundGradientTo: '#ffa726',
+        //     decimalPlaces: 1,
+        //     color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+        //     labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+        //     style: {
+        //       borderRadius: 16,
+        //     },
+        //     propsForDots: {
+        //       r: '6',
+        //       strokeWidth: '2',
+        //       stroke: '#ffa726',
+        //     },
+
+        //     // Format y-axis labels to show temperature in °C
+        //     formatYLabel: value => `${value}°C`,
+        //   }}
+        //   bezier
+        //   yAxisLabel=""
+        //   yAxisSuffix="°C"
+        //   style={{
+        //     marginVertical: 8,
+        //     borderRadius: 16,
+        //   }}
+        // />
+
+        <View>
+          {spectrumeData.map((data, index) => (
+            <View>
+              <FullscreenEChartsChart
+                key={index}
+                lines={[data]}
+                lineColors={['blue']}
+                showThresholds={true}
+                minThreshold={30}
+                maxThreshold={70}
+                height={200}
+                label={getLabelIndex(index)}
+              />
+            </View>
+          ))}
+        </View>
+      ) : (
+        <View />
+      )}
+
       <View style={styles.buttonContainer}>
         <Button
           title="Scan Devices"
@@ -272,7 +293,7 @@ const HomeScreen = () => {
         </>
         {/* )} */}
       </View>
-    </>
+    </ScrollView>
   );
 };
 

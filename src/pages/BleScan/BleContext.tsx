@@ -13,6 +13,10 @@ export interface BleContextType {
   scanForDevices: () => void;
   allDevices: Device[];
   isScanningDevice: boolean;
+  spectrumeData: any[];
+  tempSpectrumeData: any[];
+  isLoadingCollectData: any;
+  percentage: any;
 
   connectedDevice: Device | null;
   disconnectDevice: (deviceId: string) => Promise<void>;

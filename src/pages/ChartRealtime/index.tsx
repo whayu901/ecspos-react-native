@@ -24,6 +24,7 @@ export default function ChartScreen() {
       minThreshold={30}
       maxThreshold={70}
       height={200}
+      label="Data X"
     />
   );
 }

@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   Modal,
   StyleSheet,
+  Text,
 } from 'react-native';
 import Orientation from 'react-native-orientation-locker';
 import {WebView} from 'react-native-webview';
@@ -17,6 +18,7 @@ type Props = {
   minThreshold?: number;
   maxThreshold?: number;
   showThresholds?: boolean;
+  label?: string;
 };
 
 export const FullscreenEChartsChart: React.FC<Props> = ({
@@ -26,6 +28,7 @@ export const FullscreenEChartsChart: React.FC<Props> = ({
   minThreshold = 30,
   maxThreshold = 70,
   showThresholds = true,
+  label,
 }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const webviewRef = useRef<WebView>(null);
@@ -167,14 +170,21 @@ export const FullscreenEChartsChart: React.FC<Props> = ({
   );
 
   return (
-    <View style={{flex: 1}}>
-      {!isFullscreen && (
-        <TouchableOpacity
-          onPress={() => setIsFullscreen(true)}
-          style={styles.fullscreenButton}>
-          <Icon name="maximize" size={20} color="#fff" />
-        </TouchableOpacity>
-      )}
+    <View style={styles.container}>
+      <View style={styles.containerLabel}>
+        {label && (
+          <View>
+            <Text style={styles.textLabel}>{label}</Text>
+          </View>
+        )}
+        {!isFullscreen && (
+          <TouchableOpacity
+            onPress={() => setIsFullscreen(true)}
+            style={styles.fullscreenButton}>
+            <Icon name="maximize" size={20} color="#fff" />
+          </TouchableOpacity>
+        )}
+      </View>
 
       {!isFullscreen && ChartView}
 
@@ -203,6 +213,18 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
     margin: 10,
     borderRadius: 4,
+  },
+  container: {
+    flex: 1,
+  },
+  containerLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  textLabel: {
+    fontWeight: 'bold',
+    fontSize: 14,
   },
   fullscreenContainer: {
     flex: 1,

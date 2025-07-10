@@ -995,14 +995,12 @@ export default function useBle() {
   };
 
   const collectVibrationData = async () => {
-    await acquireWakeLock('backgroundBluetooth');
     await startForegroundService();
-    await startBackgroundTask();
 
     setIsDisableStopBtn(false);
     setIsLoadingCollectData(true);
-    // await collectData(0, 3, 8, 3125);
-    await collectData(2, 0, 0, 3125);
+    await collectData(0, 3, 8, 3125);
+    // await collectData(2, 0, 0, 3125);
     setMonitoredData(0);
     setReceivedData([]);
     // setWaveDataT([]);
