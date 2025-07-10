@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+    <style>
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+      }
+      #main {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="main"></div>
+    <script>
+      const main = document.getElementById('main');
+      const chart = echarts.init(main);
+
+      // Function to adjust height based on orientation
+      function adjustHeight() {
+        const isPortrait = window.innerHeight > window.innerWidth;
+        const newHeight = isPortrait ? '80%' : '100%';
+        main.style.height = newHeight;
+
+        // Give the browser a tick to apply the new height before resize
+        setTimeout(() => {
+          chart.resize();
+        }, 50);
+      }
+
+      // Initial adjust
+      adjustHeight();
+
+      // Listen for resize/orientation change events
+      window.addEventListener('resize', adjustHeight);
+
+      document.addEventListener('message', function (e) {
+        const option = JSON.parse(e.data);
+        chart.setOption(option, true);
+        // Also ensure height is correct after option update
+        adjustHeight();
+      });
+    </script>
+  </body>
+</html>

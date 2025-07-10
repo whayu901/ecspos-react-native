@@ -4,5 +4,7 @@ include ':app'
 includeBuild('../node_modules/@react-native/gradle-plugin')
 include ':react-native-fs'
 project(':react-native-fs').projectDir = new File(settingsDir, '../node_modules/react-native-fs/android')
+include ':react-native-skia'
+project(':react-native-skia').projectDir = new File(rootProject.projectDir, '../node_modules/@shopify/react-native-skia/android')
 // include ':react-native-bluetooth-escpos-printer'
 // project(':react-native-bluetooth-escpos-printer').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-bluetooth-escpos-printer/android')

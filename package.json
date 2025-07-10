@@ -16,7 +16,6 @@
     "@react-native-async-storage/async-storage": "^1.23.1",
     "@react-navigation/native": "^6.1.17",
     "@react-navigation/native-stack": "^6.9.26",
-    "@shopify/react-native-skia": "^2.1.1",
     "@types/react-native-base64": "^0.2.2",
     "buffer": "^6.0.3",
     "crypto-js": "^4.2.0",
@@ -32,6 +31,7 @@
     "react-native-ble-plx": "^3.2.1",
     "react-native-chart-kit": "^6.12.0",
     "react-native-device-info": "^14.0.4",
+    "react-native-echarts-wrapper": "^2.0.0",
     "react-native-fs": "^2.20.0",
     "react-native-image-picker": "^8.2.0",
     "react-native-mmkv": "2.12.2",
@@ -42,7 +42,10 @@
     "react-native-screens": "3.0.0",
     "react-native-svg": "^15.12.0",
     "react-native-svg-charts": "^5.4.0",
-    "react-native-vector-icons": "^10.2.0"
+    "react-native-vector-icons": "^10.2.0",
+    "react-native-webview": "^13.15.0",
+    "victory": "^37.3.6",
+    "victory-native": "^41.17.4"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
