@@ -768,11 +768,11 @@ export default function useBle() {
         rate = 3125 * 2.56;
         break;
       case 2:
-        sampLen = 8 * 1024;
+        sampLen = 2 * 1024;
         rate = 3125 * 2.56;
         break;
       case 1:
-        sampLen = 8 * 1024;
+        sampLen = 1 * 1024;
         rate = 3125 * 2.56;
         break;
     }
