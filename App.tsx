@@ -6,6 +6,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import Route from './src/routes';
 import {RootServiceModule} from './src/module';
 import {BleProvider} from './src/pages/BleScan/BleContext';
+import UploadToast from './src/components/UploadToast';
 
 // Register the foreground service
 
@@ -38,6 +39,11 @@ const App = () => {
   return (
     <BleProvider>
       <NavigationContainer>
+        <UploadToast
+          backgroundStatus="success"
+          message="Success"
+          progress={100}
+        />
         <Route />
       </NavigationContainer>
       <Modal visible={isJailbroken} transparent={true} animationType="fade">
