@@ -1,6 +1,8 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, {useEffect, useRef, useState} from 'react';
 import {Animated, Text, View, TouchableOpacity} from 'react-native';
 import styles from './styles';
+import {useUploadContext} from '../../context/UploadContext'; // adjust path if needed
 
 const {
   toastContainer,
@@ -12,26 +14,22 @@ const {
   percentText,
 } = styles;
 
-interface UploadToastProps {
-  backgroundStatus: 'idle' | 'uploading' | 'success' | 'error';
-  progress: number;
-  message: string;
-}
+const UploadToast: React.FC = () => {
+  const {
+    backgroundStatus,
+    backgroundProgress,
+    backgroundUploadMessage,
+    setBackgroundStatus,
+  } = useUploadContext();
 
-const UploadToast: React.FC<UploadToastProps> = ({
-  backgroundStatus,
-  progress,
-  message,
-}) => {
   const opacity = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(-100)).current;
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [localVisible, setLocalVisible] = useState(false);
-
   const shouldBeVisible = backgroundStatus !== 'idle';
 
-  const animateShow = useCallback(() => {
+  const animateShow = () => {
     Animated.parallel([
       Animated.timing(opacity, {
         toValue: 1,
@@ -44,9 +42,9 @@ const UploadToast: React.FC<UploadToastProps> = ({
         useNativeDriver: true,
       }),
     ]).start();
-  }, [opacity, translateY]);
+  };
 
-  const animateHide = useCallback(() => {
+  const animateHide = () => {
     Animated.parallel([
       Animated.timing(opacity, {
         toValue: 0,
@@ -60,17 +58,16 @@ const UploadToast: React.FC<UploadToastProps> = ({
       }),
     ]).start(() => {
       setLocalVisible(false);
+      setBackgroundStatus('idle'); // Finalize status update in global context
     });
-  }, [opacity, translateY]);
+  };
 
-  // control visibility from props only
   useEffect(() => {
     if (shouldBeVisible) {
       setLocalVisible(true);
       animateShow();
 
-      // Auto-close if success and 100%
-      if (backgroundStatus === 'success' && progress >= 100) {
+      if (backgroundStatus === 'success' && backgroundProgress >= 100) {
         timeoutRef.current = setTimeout(() => {
           animateHide();
         }, 5000);
@@ -85,26 +82,26 @@ const UploadToast: React.FC<UploadToastProps> = ({
         timeoutRef.current = null;
       }
     };
-  }, [shouldBeVisible, backgroundStatus, progress, animateShow, animateHide]);
+  }, [
+    shouldBeVisible,
+    backgroundStatus,
+    backgroundProgress,
+    animateShow,
+    animateHide,
+  ]);
 
   const getBackgroundColor = () => {
-    if (backgroundStatus === 'success' && progress >= 100) {
+    if (backgroundStatus === 'success' && backgroundProgress >= 100)
       return '#4CAF50';
-    }
-    if (backgroundStatus === 'uploading') {
-      return '#2196F3';
-    }
-    if (backgroundStatus === 'error') {
-      return '#F44336';
-    }
+    if (backgroundStatus === 'uploading') return '#2196F3';
+    if (backgroundStatus === 'error') return '#F44336';
     return '#333';
   };
 
-  const shouldShowClose = backgroundStatus === 'success' && progress >= 100;
+  const shouldShowClose =
+    backgroundStatus === 'success' && backgroundProgress >= 100;
 
-  if (!localVisible) {
-    return null;
-  }
+  if (!localVisible) return null;
 
   return (
     <Animated.View
@@ -117,7 +114,7 @@ const UploadToast: React.FC<UploadToastProps> = ({
         },
       ]}>
       <View style={textRow}>
-        <Text style={toastText}>{message}</Text>
+        <Text style={toastText}>{backgroundUploadMessage}</Text>
         {shouldShowClose && (
           <TouchableOpacity onPress={animateHide}>
             <Text style={closeText}>×</Text>
@@ -125,13 +122,15 @@ const UploadToast: React.FC<UploadToastProps> = ({
         )}
       </View>
 
-      {backgroundStatus === 'uploading' && (
+      {(backgroundStatus === 'uploading' ||
+        backgroundStatus === 'success' ||
+        backgroundStatus === 'error') && (
         <>
           <View style={progressContainer}>
-            <View style={[progressBar, {width: `${progress}%`}]} />
+            <View style={[progressBar, {width: `${backgroundProgress}%`}]} />
           </View>
           {backgroundStatus === 'uploading' && (
-            <Text style={percentText}>{Math.floor(progress)}%</Text>
+            <Text style={percentText}>{Math.floor(backgroundProgress)}%</Text>
           )}
         </>
       )}

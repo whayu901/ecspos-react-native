@@ -6,7 +6,9 @@ import {NavigationContainer} from '@react-navigation/native';
 import Route from './src/routes';
 import {RootServiceModule} from './src/module';
 import {BleProvider} from './src/pages/BleScan/BleContext';
+
 import UploadToast from './src/components/UploadToast';
+import {UploadProvider} from './src/context/UploadContext';
 
 // Register the foreground service
 
@@ -38,37 +40,36 @@ const App = () => {
 
   return (
     <BleProvider>
-      <NavigationContainer>
-        <UploadToast
-          backgroundStatus="success"
-          message="Success"
-          progress={100}
-        />
-        <Route />
-      </NavigationContainer>
-      <Modal visible={isJailbroken} transparent={true} animationType="fade">
-        <View
-          style={{
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: 'rgba(0,0,0,0.8)',
-          }}>
+      <UploadProvider>
+        <NavigationContainer>
+          <UploadToast />
+          <Route />
+        </NavigationContainer>
+        <Modal visible={isJailbroken} transparent={true} animationType="fade">
           <View
             style={{
-              backgroundColor: 'white',
-              padding: 20,
-              borderRadius: 10,
-              width: '80%',
+              flex: 1,
+              justifyContent: 'center',
               alignItems: 'center',
+              backgroundColor: 'rgba(0,0,0,0.8)',
             }}>
-            <Text style={{fontSize: 18, marginBottom: 20, textAlign: 'center'}}>
-              we detect you cheating. bitch
-            </Text>
-            <Button title="Exit App" onPress={handleExit} />
+            <View
+              style={{
+                backgroundColor: 'white',
+                padding: 20,
+                borderRadius: 10,
+                width: '80%',
+                alignItems: 'center',
+              }}>
+              <Text
+                style={{fontSize: 18, marginBottom: 20, textAlign: 'center'}}>
+                we detect you cheating. bitch
+              </Text>
+              <Button title="Exit App" onPress={handleExit} />
+            </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
+      </UploadProvider>
     </BleProvider>
   );
 };
