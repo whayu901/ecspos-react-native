@@ -114,6 +114,22 @@ android {
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
     }
+
+    repositories {
+        // default path where thermalsdk AAR is stored (for CI build)
+        flatDir {
+            dirs "../../../modules/thermalsdk/build/outputs/aar"
+        }
+        // default path where androidsdk AAR is stored (for CI build)
+        flatDir {
+            dirs "../../../modules/androidsdk/build/outputs/aar"
+        }
+        // local libs folder
+        flatDir {
+            dirs "libs"
+        }
+    }
+
 }
 
 dependencies {
@@ -126,6 +142,8 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation("com.scottyab:rootbeer-lib:0.1.1")
 
+    implementation(group: "", version: "", name: 'androidsdk-release', ext: 'aar')
+    implementation(group: "", version: "", name: 'thermalsdk-release', ext: 'aar')
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
