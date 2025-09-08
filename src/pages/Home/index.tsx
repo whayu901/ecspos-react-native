@@ -46,6 +46,32 @@ function App(): React.JSX.Element {
         <Text>{data}</Text>
         <View style={{marginHorizontal: 15}}>
           <TouchableOpacity
+            onPress={() => navigation.navigate('RealtimeLocationScreen')}
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              borderBottomColor: 'grey',
+              borderBottomWidth: 0.5,
+              paddingBottom: 10,
+              marginTop: 15,
+            }}>
+            <Text style={{color: 'black'}}>RealTime Location</Text>
+            <Text style={{color: 'black'}}>{'>'}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('UploadDataScreen')}
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              borderBottomColor: 'grey',
+              borderBottomWidth: 0.5,
+              paddingBottom: 10,
+              marginTop: 15,
+            }}>
+            <Text style={{color: 'black'}}>Upload Data</Text>
+            <Text style={{color: 'black'}}>{'>'}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
             onPress={() => navigation.navigate('QRCode')}
             style={{
               flexDirection: 'row',
