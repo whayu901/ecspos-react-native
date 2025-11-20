@@ -960,7 +960,7 @@ export default function useBle() {
   const stopCollectTmpData = async () => {
     setIsDisableStopBtn(true);
 
-    await releaseWakeLock();
+    // await releaseWakeLock();
     await stopBackgroundTask();
     await notifee.stopForegroundService();
     await notifee.cancelAllNotifications();
@@ -1123,6 +1123,7 @@ export default function useBle() {
     disconnectDevice,
     isBack,
     setIsBack,
+
     collectValue,
     resumeCollectData,
     pauseCollectTempData,

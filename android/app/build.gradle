@@ -89,9 +89,10 @@ android {
         }
     }
 
-     packagingOptions {
+    packagingOptions {
         exclude "**/libimage_processing_util_jni.so"  // Exclude the problematic JNI file
         exclude "**/riscv64/**"  // Explicitly exclude the riscv64 folder
+        pickFirst "**/libslf4j*.so"  // Pick first if there are duplicate native libraries
     }
     
     signingConfigs {
@@ -102,6 +103,7 @@ android {
             keyPassword 'android'
         }
     }
+    
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
@@ -116,34 +118,34 @@ android {
     }
 
     repositories {
-        // default path where thermalsdk AAR is stored (for CI build)
-        flatDir {
-            dirs "../../../modules/thermalsdk/build/outputs/aar"
-        }
-        // default path where androidsdk AAR is stored (for CI build)
-        flatDir {
-            dirs "../../../modules/androidsdk/build/outputs/aar"
-        }
-        // local libs folder
         flatDir {
             dirs "libs"
         }
     }
+}
 
+configurations {
+    all {
+        exclude group: 'org.slf4j', module: 'slf4j-api'
+    }
 }
 
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
     implementation("com.facebook.react:flipper-integration")
-     implementation("androidx.activity:activity:1.9.2")
+    implementation("androidx.activity:activity:1.9.2")
     implementation project(':react-native-fs')
     // implementation project(':react-native-bluetooth-escpos-printer')
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation("com.scottyab:rootbeer-lib:0.1.1")
 
-    implementation(group: "", version: "", name: 'androidsdk-release', ext: 'aar')
-    implementation(group: "", version: "", name: 'thermalsdk-release', ext: 'aar')
+    // FLIR Thermal SDK AAR files
+    implementation(name: 'thermalsdk', ext: 'aar')
+    implementation(name: 'androidsdk', ext: 'aar')
+    
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.9.0'
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
