@@ -24,6 +24,8 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import Config from 'react-native-config';
+
 import {useBleContext} from '../../pages/BleScan/BleContext';
 
 function App(): React.JSX.Element {
@@ -31,6 +33,7 @@ function App(): React.JSX.Element {
   const navigation: any = useNavigation();
   const route: any = useRoute();
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [data, setData] = useState('Initial Data');
 
   const {stopCollectTmpData, disconnectDevice, connectedDevice, setWidgetFrom} =
@@ -59,7 +62,7 @@ function App(): React.JSX.Element {
     <SafeAreaView>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
       <ScrollView contentInsetAdjustmentBehavior="automatic">
-        <Text>{data}</Text>
+        <Text>{Config.GOOGLE_MAPS_API_KEY}</Text>
         <View style={{marginHorizontal: 15}}>
           <TouchableOpacity
             onPress={() => navigation.navigate('UploadDataScreen')}
