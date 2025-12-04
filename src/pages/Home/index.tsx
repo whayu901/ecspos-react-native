@@ -91,6 +91,19 @@ function App(): React.JSX.Element {
             <Text style={{color: 'black'}}>{'>'}</Text>
           </TouchableOpacity>
           <TouchableOpacity
+            onPress={() => navigation.navigate('FlirCameraScreen')}
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              borderBottomColor: 'grey',
+              borderBottomWidth: 0.5,
+              paddingBottom: 10,
+              marginTop: 15,
+            }}>
+            <Text style={{color: 'black'}}>Flir Camera</Text>
+            <Text style={{color: 'black'}}>{'>'}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
             onPress={() => navigation.navigate('NotificationScreen')}
             style={{
               flexDirection: 'row',

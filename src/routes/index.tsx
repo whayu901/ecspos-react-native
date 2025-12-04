@@ -12,6 +12,7 @@ import NotificationScreen from '../pages/notification';
 import ChartScreen from '../pages/Chart';
 import ChartRealtimeScreen from '../pages/ChartRealtime';
 import UploadDataScreen from '../pages/UploadData';
+import FlirCameraScreen from '../pages/FlirCamera';
 
 // import NewBluettoth from '../pages/newBluetooth';
 
@@ -29,6 +30,7 @@ const RoutePages = () => {
       <Stack.Screen name="NotificationScreen" component={NotificationScreen} />
       <Stack.Screen name="ChartScreen" component={ChartScreen} />
       <Stack.Screen name="UploadDataScreen" component={UploadDataScreen} />
+      <Stack.Screen name="FlirCameraScreen" component={FlirCameraScreen} />
       <Stack.Screen
         name="ChartRealtimeScreen"
         component={ChartRealtimeScreen}

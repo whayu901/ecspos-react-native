@@ -6,11 +6,11 @@ import {
   BleError,
 } from 'react-native-ble-plx';
 import {Buffer} from 'buffer';
-import {MMKV} from 'react-native-mmkv';
+// import {MMKV} from 'react-native-mmkv';
 import BackgroundService from 'react-native-background-actions';
 
-const storage = new MMKV();
-const RECEIVED_DATA_KEY = 'ble_received_data';
+// const storage = new MMKV();
+// const RECEIVED_DATA_KEY = 'ble_received_data';
 
 const bleManager = new BleManager(); // ✅ Singleton BLE manager
 
@@ -36,7 +36,7 @@ export default function useBLE() {
 
   // ✅ Hydrate state when hook mounts
   useEffect(() => {
-    const stored = storage.getString(RECEIVED_DATA_KEY);
+    const stored = '';
     if (stored) {
       const parsed = JSON.parse(stored);
       receivedDataRef.current = parsed;
@@ -108,7 +108,7 @@ export default function useBLE() {
 
       receivedDataRef.current.push(data);
       setReceivedData([...receivedDataRef.current]);
-      storage.set(RECEIVED_DATA_KEY, JSON.stringify(receivedDataRef.current));
+      // storage.set(RECEIVED_DATA_KEY, JSON.stringify(receivedDataRef.current));
 
       console.log(`✅ Data updated: ${data}`);
     } catch (e) {

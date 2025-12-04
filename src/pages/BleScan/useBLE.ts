@@ -20,9 +20,8 @@ import DeviceInfo from 'react-native-device-info';
 import {PERMISSIONS} from 'react-native-permissions';
 import {Buffer} from 'buffer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import notifee from '@notifee/react-native';
+// import notifee from '@notifee/react-native';
 
-import {storage} from '../../utils/storage';
 import {computeAmplitudeSpectrum} from '../../utils/SignalHelper';
 import {acquireWakeLock, releaseWakeLock} from '../../module';
 import useNotification from '../notification/hooks/useNotification';
@@ -108,7 +107,7 @@ export default function useBle() {
   useEffect(() => {
     if (widgetFrom !== 'bluetooth') return;
 
-    const saved = storage.getString(RECEIVED_DATA_KEY);
+    const saved = '';
     if (saved) {
       try {
         setReceivedData(JSON.parse(saved));
@@ -119,14 +118,15 @@ export default function useBle() {
   }, []);
 
   useEffect(() => {
-    const saved = storage.getBoolean('disableStop');
+    // const saved = storage.getBoolean('disableStop');
+    const saved = false;
     if (saved !== undefined) {
       setIsDisableStopBtn(saved);
     }
   }, []);
 
   useEffect(() => {
-    storage.set('disableStop', isDisableStopBtn);
+    // storage.set('disableStop', isDisableStopBtn);
   }, [isDisableStopBtn]);
 
   const reconnectToSavedDevice = async (device: Device) => {
@@ -284,7 +284,7 @@ export default function useBle() {
     }
 
     const restoreWriteChar = async () => {
-      const saved = storage.getString('ble_write_char');
+      const saved = '';
       if (!saved) return;
 
       try {
@@ -362,14 +362,14 @@ export default function useBle() {
           setWriteCharacteristic(characteristicitem);
           writeCharRef.current = characteristicitem;
 
-          storage.set(
-            'ble_write_char',
-            JSON.stringify({
-              deviceId: characteristicitem.deviceID,
-              serviceUUID: characteristicitem.serviceUUID,
-              uuid: characteristicitem.uuid,
-            }),
-          );
+          // storage.set(
+          //   'ble_write_char',
+          //   JSON.stringify({
+          //     deviceId: characteristicitem.deviceID,
+          //     serviceUUID: characteristicitem.serviceUUID,
+          //     uuid: characteristicitem.uuid,
+          //   }),
+          // );
         }
         if (characteristicitem.uuid === DATA_CHARAC_ID) {
           setReadCharacteristic(characteristicitem);
@@ -926,7 +926,7 @@ export default function useBle() {
       setReceivedData([...receivedDataRef.current]);
 
       // ✅ Persist to MMKV or AsyncStorage
-      storage.set(RECEIVED_DATA_KEY, JSON.stringify(receivedDataRef.current));
+      // storage.set(RECEIVED_DATA_KEY, JSON.stringify(receivedDataRef.current));
 
       setCollectValue(String(data));
 
@@ -962,8 +962,8 @@ export default function useBle() {
 
     // await releaseWakeLock();
     await stopBackgroundTask();
-    await notifee.stopForegroundService();
-    await notifee.cancelAllNotifications();
+    // await notifee.stopForegroundService();
+    // await notifee.cancelAllNotifications();
 
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
