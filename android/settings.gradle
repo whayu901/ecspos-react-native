@@ -1,13 +1,18 @@
 pluginManagement { includeBuild("../node_modules/@react-native/gradle-plugin") }
+
 plugins { id("com.facebook.react.settings") }
-extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autolinkLibrariesFromCommand() }
-rootProject.name = 'MyApp'
-apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesSettingsGradle(settings)
-include ':app'
-includeBuild('../node_modules/@react-native/gradle-plugin')
-include ':react-native-fs'
-project(':react-native-fs').projectDir = new File(settingsDir, '../node_modules/react-native-fs/android')
-include ':react-native-skia'
-project(':react-native-skia').projectDir = new File(rootProject.projectDir, '../node_modules/@shopify/react-native-skia/android')
-// include ':react-native-bluetooth-escpos-printer'
-// project(':react-native-bluetooth-escpos-printer').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-bluetooth-escpos-printer/android')
+
+extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
+  ex.autolinkLibrariesFromCommand()
+}
+
+rootProject.name = "MyApp"
+include(":app")
+
+includeBuild("../node_modules/@react-native/gradle-plugin")
+
+include(":react-native-fs")
+project(":react-native-fs").projectDir = new File(settingsDir, "../node_modules/react-native-fs/android")
+
+include(":react-native-skia")
+project(":react-native-skia").projectDir = new File(rootProject.projectDir, "../node_modules/@shopify/react-native-skia/android")
